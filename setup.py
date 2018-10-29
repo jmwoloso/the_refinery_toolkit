@@ -6,13 +6,13 @@ except ImportError:
 
 import rftk
 
-setup(name="rftk",
+setup(name="the_refinery_toolkit",
       version=rftk.__version__,
       description="The Refinery Toolkit (RFTK)",
       author="Jason Wolosonovich",
       author_email="jason@avaland.io",
       url="https://github.com/jmwoloso/the_refinery_toolkit",
-      packages=["pychattr"],
+      packages=["rftk"],
       license="BSD 3 Clause",
       long_description="The Refinery Toolkit - "
                        "A Collection of Utilities for use "

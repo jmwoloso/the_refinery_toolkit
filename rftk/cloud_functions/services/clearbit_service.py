@@ -1,3 +1,10 @@
+"""
+clearbit_service.py: Utility functions used by the clearbit service.
+"""
+
+__author__ = "jason wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
+
 import os
 import base64
 
@@ -8,63 +15,64 @@ import clearbit
 from .classes import MemoryCache, MetadataMixin
 
 
+def decrypt_with_kms(project_id=None, location_id=None,
+                     key_ring_id=None, crypto_key_id=None,
+                     ciphertext_string=None):
+    """Decrypts data from ciphertext_string stored in GCS."""
+    print("decrypt_with_kms()")
+    # Creates an API client for the KMS API.
+    kms_client = googleapiclient \
+        .discovery \
+        .build(
+        "cloudkms",
+        "v1",
+        cache=MemoryCache()
+    )
+
+    # The resource name of the CryptoKey.
+    name = \
+        "projects/{}/locations/{}/keyRings/{}/cryptoKeys/{}" \
+            .format(
+            project_id,
+            location_id,
+            key_ring_id,
+            crypto_key_id
+        )
+
+    # Use the KMS API to decrypt the data.
+    crypto_keys = \
+        kms_client \
+            .projects() \
+            .locations() \
+            .keyRings() \
+            .cryptoKeys()
+
+    request = crypto_keys.decrypt(
+        name=name,
+        body={
+            "ciphertext": base64.b64encode(
+                ciphertext_string
+            ).decode(
+                "ascii"
+            )
+        }
+    )
+    response = request.execute()
+    plaintext = base64.b64decode(
+        response["plaintext"]
+            .encode(
+            "ascii"
+        )
+    ) \
+        .decode() \
+        .strip("\n")
+
+    return plaintext
+
 def get_service_configs(service=None):
     """Utility function to set configurations for the service."""
-    print("_set_configs()")
+    print("get_service_configs()")
     if service == "clearbit":
-        def __decrypt_with_kms(project_id=None, location_id=None,
-                               key_ring_id=None, crypto_key_id=None,
-                               ciphertext_string=None):
-            """Decrypts data from ciphertext_string stored in GCS."""
-            print("__decrypt_with_kms()")
-            # Creates an API client for the KMS API.
-            kms_client = googleapiclient \
-                .discovery \
-                .build(
-                "cloudkms",
-                "v1",
-                cache=MemoryCache()
-            )
-
-            # The resource name of the CryptoKey.
-            name = \
-                "projects/{}/locations/{}/keyRings/{}/cryptoKeys/{}" \
-                    .format(
-                    project_id,
-                    location_id,
-                    key_ring_id,
-                    crypto_key_id
-                )
-
-            # Use the KMS API to decrypt the data.
-            crypto_keys = \
-                kms_client \
-                    .projects() \
-                    .locations() \
-                    .keyRings() \
-                    .cryptoKeys()
-
-            request = crypto_keys.decrypt(
-                name=name,
-                body={
-                    "ciphertext": base64.b64encode(
-                        ciphertext_string
-                    ).decode(
-                        "ascii"
-                    )
-                }
-            )
-            response = request.execute()
-            plaintext = base64.b64decode(
-                response["plaintext"]
-                    .encode(
-                    "ascii"
-                )
-            ) \
-                .decode() \
-                .strip("\n")
-
-            return plaintext
         try:
             # set configs from the env vars of the machine
             PROJECT_ID = os.environ["GCP_PROJECT_ID"]
@@ -114,6 +122,7 @@ def get_service_configs(service=None):
 def make_clearbit_company_gcs_payload(request=None):
     """Utility function to flatten and parse the fields we need in
     BQ."""
+    print("make_clearbit_company_gcs_payload()")
     r = request["company"]
     p = MetadataMixin()
 
@@ -225,6 +234,7 @@ def make_clearbit_company_gcs_payload(request=None):
 def make_clearbit_person_gcs_payload(request=None):
     """Utility function to flatten and parse the fields we need in
     BQ."""
+    print("make_clearbit_person_gcs_payload()")
     r = request["person"]
     p = MetadataMixin()
 
@@ -317,6 +327,7 @@ def make_clearbit_person_gcs_payload(request=None):
 def make_tags_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
+    print("make_tags_payload()")
     r = request.copy()
     p = MetadataMixin()
 
@@ -333,6 +344,7 @@ def make_tags_payload(request=None):
 def make_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
+    print("make_tech_payload()")
     r = request.copy()
     p = MetadataMixin()
 
