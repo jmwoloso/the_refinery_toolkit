@@ -192,6 +192,12 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     table = bq.Table(table_ref,
                      schema=schema)
 
+    print("dataset: {}".format(dataset))
+    print("table: {}".format(table))
+    print("schema: {}".format(schema))
+    print("payload: {}".format(payload))
+    print("payload type: {}".format(payload_type))
+
     # try to create the table if it doesn't exist
     # try:
     #     table = client.create_table(table)
@@ -207,8 +213,14 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     domain = payload["domain"]
     url = payload["url"]
 
+    # print("refinery_id: {}".format(refinery_id))
+    # print("refined_at: {}".format(refined_at))
+    # print("refined_date: {}".format(refined_date))
+    # print("domain: {}".format(domain))
+    # print("url: {}".format(url))
     if payload_type == "wp":
         if len(payload["wp_themes"]) != 0:
+            print("found themes.")
             for theme in payload["wp_themes"]:
                 row = [
                     [
@@ -237,6 +249,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     print(errors)
 
         if len(payload["wp_plugins"]) != 0:
+            print("found plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
                     [
