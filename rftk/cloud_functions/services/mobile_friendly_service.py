@@ -1,10 +1,18 @@
+"""
+mobile_friendly_service.py: Utility functions used by the service that
+                            checks whether a site is mobile-friendly.
+"""
+
+__author__ = "jason wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
+
 import requests
 
 
 def check_mobile_friendly(request=None):
     """Utility function to test whether the supplied domain is mobile
         friendly."""
-    print("_check_mobile_friendly()")
+    print("check_mobile_friendly()")
     headers = {"Content-Type": "application/json"}
     json_data = {"url": request["url"]}
     api_url = \
