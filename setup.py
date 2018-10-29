@@ -11,8 +11,9 @@ setup(name="the_refinery_toolkit",
       description="The Refinery Toolkit (RFTK)",
       author="Jason Wolosonovich",
       author_email="jason@avaland.io",
-      url="https://github.com/jmwoloso/the_refinery_toolkit",
-      packages=["rftk"],
+      url="https://github.com/jmwoloso/rftk",
+      packages=["rftk.cloud_functions",
+                "rftk.cloud_functions.services"],
       license="BSD 3 Clause",
       long_description="The Refinery Toolkit - "
                        "A Collection of Utilities for use "
