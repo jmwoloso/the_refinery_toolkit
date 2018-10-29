@@ -6,14 +6,14 @@ except ImportError:
 
 import rftk
 
-setup(name="pychattr",
+setup(name="rftk",
       version=rftk.__version__,
       description="The Refinery Toolkit (RFTK)",
       author="Jason Wolosonovich",
       author_email="jason@avaland.io",
-      url="https://github.com/jmwoloso/pychattr",
+      url="https://github.com/jmwoloso/the_refinery_toolkit",
       packages=["pychattr"],
-      license="GPL-3.0",
+      license="BSD 3 Clause",
       long_description="The Refinery Toolkit - "
                        "A Collection of Utilities for use "
                        "with The Refinery on GCP",
