@@ -166,11 +166,17 @@ def download_from_gcs(bucket_name=None, file_name=None):
             encoding="utf-8"
         )
 
+        print("payload: {}".format(payload))
         return payload
 
     # TODO: what should we do here?
     except Exception as e:
-        pass
+        err = {
+            "error_message": e,
+            "status_code": "unknown"
+        }
+
+        print(err)
 
 
 def insert_bq_row(dataset=None, table=None, schema=None,
