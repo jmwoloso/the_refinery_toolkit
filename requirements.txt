@@ -20,8 +20,6 @@ grpc-google-iam-v1==0.11.4
 grpcio==1.16.0
 httplib2==0.11.3
 idna==2.7
-mypy==0.641
-mypy-extensions==0.4.1
 protobuf==3.6.1
 psutil==5.4.7
 pyasn1==0.4.4
