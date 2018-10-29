@@ -98,7 +98,7 @@ def get_service_configs(service=None):
             cipher_string = cipher_blob.download_as_string()
 
             # decrypt the kms key stored in gcs and set the key attr
-            clearbit.key = __decrypt_with_kms(
+            clearbit.key = decrypt_with_kms(
                 project_id=PROJECT_ID,
                 location_id=LOCATION_ID,
                 key_ring_id=KEYRING_ID,
