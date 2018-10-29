@@ -1,3 +1,10 @@
+"""
+crawler_service.py: Utility functions used by the crawler service.
+"""
+
+__author__ = "jason wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
+
 import re
 import requests
 from urllib.parse import urlparse
@@ -7,20 +14,31 @@ from bs4 import BeautifulSoup
 
 
 def is_email_link(href=None):
+    """Utility function to determine whether the supplied href attribute
+    is an email link."""
+    print("email_link()")
     return href and 'mailto:' in href
 
 
 def is_tel_link(href=None):
+    """Utility function to detemrine whether the supplied href
+    attribute is a telephone link."""
+    print("is_tel_link()")
     return href and 'tel:' in href
 
 
 def is_social_link(href=None):
+    """Utility function to determine whether the supplied href
+    attribute is a social media link."""
+    print("is_social_link()")
     return href and (
             'facebook' in href or 'twitter' in href or 'pinterest'
             in href or 'linkedin' in href)
 
 
 def get_emails(document=None):
+    """Utility function to return emails from a document."""
+    print("get_emails()")
     _r = r"'<\S+?>'"
     # this caught false-positives like 'rd@context'
     # _r = r"[\w\.-]+@[\w\.-]+"
@@ -42,6 +60,9 @@ def get_emails(document=None):
 
 
 def get_phones(document=None):
+    """Utility function that returns any phone numbers found within the
+    supplied document."""
+    print("get_phones()")
     _r = r'(?:(?:\+?([1-9]|[0-9][0-9]|[0-9][0-9][0-9])' \
          r'\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9]' \
          r'[02-8][02-9])\s*\)|([0-9][1-9]|[0-9]1[02-9]|[2-9][02-8]1|' \
@@ -60,6 +81,9 @@ def get_phones(document=None):
 
 
 def get_socials(document=None):
+    """Utility function that returns social media links from the
+    supplied document."""
+    print("get_socials()")
     # TODO: add regex back in later
     socials = list(set(
         # re.findall(r'[\w\.-]+@[\w\.-]+', document.text) + [
@@ -68,16 +92,20 @@ def get_socials(document=None):
 
     return socials
 
-
+# TODO: needs implemented
 def get_url(ip_address=None):
     """Converts the supplied IP address to the associated URL for
     crawling and parsing."""
+    print("get_url()")
     # TODO: figure out how to overcome CDNs (like cloudflare) which
     # obscure the DNS info though perhaps that is a sign that the
     # company is probably too big for our product
 
 
 def get_content_class(content=None):
+    """Utility function that takes website content and returns the
+    classification of that text by Google."""
+    print("get_content_class()")
     language_client = language.LanguageServiceClient()
 
     document = language.types.Document(
@@ -102,7 +130,7 @@ def get_content_class(content=None):
 
 def get_wp_plugins(document=None):
     """Retrieves a list of the installed WP plugins."""
-    print("_get_wp_plugins()")
+    print("get_wp_plugins()")
     r = r"""(?<=wp-content\/plugins\/)(.*?)(?=\/)"""
     plugin_links = document \
         .find_all('link',
@@ -115,7 +143,7 @@ def get_wp_plugins(document=None):
 
 def get_wp_themes(document=None):
     """Returns the WP theme used on the site."""
-    print("_get_wp_themes()")
+    print("get_wp_themes()")
     r = r"""(?<=wp-content\/themes\/)(.*?)(?=\/)"""
     themes = document.find_all("link",
                                {"href": re.compile(r)})
@@ -126,7 +154,7 @@ def get_wp_themes(document=None):
 
 def get_all_links(document=None):
     """Function that returns all the links found on the visited page."""
-    print("_get_all_links()")
+    print("get_all_links()")
     all_links = [a["href"]
                  for a in document.find_all("a", href=True)]
     # remove empty strings
@@ -137,7 +165,7 @@ def get_all_links(document=None):
 
 def get_internal_links(url=None, links=None):
     """Function that returns the internal links from the website."""
-    print("_get_internal_links()")
+    print("get_internal_links()")
     internal_links_ = list()
     for link in links:
         url_host = urlparse(url).hostname
@@ -153,7 +181,7 @@ def get_internal_links(url=None, links=None):
 
 def get_external_links(internal_links=None,  all_links=None):
     """Function that returns the external links from a site."""
-    print("_get_external_links()")
+    print("get_external_links()")
     # TODO: clean this up to remove incorrect links like jquery,
     # tel:, etc.
     _r = r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))" \
@@ -172,10 +200,9 @@ def get_external_links(internal_links=None,  all_links=None):
 
 
 def get_hrefs(document=None):
-    """Parses the document and fills in attributes."""
     """Function to return the email, phone and social data from a 
     website."""
-    print("_get_hrefs()")
+    print("get_hrefs()")
     # attempt to fill in the attributes
     emails_ = get_emails(document=document)
     phones_ = get_phones(document=document)
@@ -186,6 +213,7 @@ def get_hrefs(document=None):
 def get_keywords_and_description(document=None):
     """Extracts the keywords and description from the `meta`
     tags."""
+    print("get_keywords_and_description()")
     keywords_ = document \
         .find_all(name="meta",
                   attrs={"name": "keywords"})
@@ -208,7 +236,7 @@ def get_keywords_and_description(document=None):
 def crawl_and_parse(url=None):
     """Utility function to crawl and return the HTML from the
     supplied domain."""
-    print("_crawl_and_parse()")
+    print("crawl_and_parse()")
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
