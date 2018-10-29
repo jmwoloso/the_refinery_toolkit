@@ -318,13 +318,13 @@ def make_clearbit_person_gcs_payload(request=None):
     p["gravatar_handle"] = r["gravatar"]["handle"]
     p["gravatar_url_titles"] = list()
     p["gravatar_urls"] = list()
-    for d in p["gravatar"]["urls"]:
+    for d in r["gravatar"]["urls"]:
         p["gravatar_url_titles"].append(d["value"])
         p["gravatar_urls"].append(d["title"])
     p["gravatar_avatar"] = r["gravatar"]["avatar"]
     p["gravatar_avatar_types"] = list()
     p["gravatar_avatar_urls"] = list()
-    for d in p["gravatar"]["avatars"]:
+    for d in r["gravatar"]["avatars"]:
         p["gravatar_avatar_types"].append(d["type"])
         p["gravatar_avatar_urls"].append(d["url"])
 
