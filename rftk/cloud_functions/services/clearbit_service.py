@@ -124,7 +124,7 @@ def make_clearbit_company_gcs_payload(request=None):
     """Utility function to flatten and parse the fields we need in
     BQ."""
     print("make_clearbit_company_gcs_payload()")
-    r = request["company"]
+    r = request["company"].copy()
     p = MetadataMixin()
 
     # add the metadata we injected to the request along the way
@@ -242,7 +242,7 @@ def make_clearbit_person_gcs_payload(request=None):
     """Utility function to flatten and parse the fields we need in
     BQ."""
     print("make_clearbit_person_gcs_payload()")
-    r = request["person"]
+    r = request["person"].copy()
     p = MetadataMixin()
 
     # add the metadata we injected to the request along the way
@@ -340,7 +340,7 @@ def make_tags_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
     print("make_tags_payload()")
-    r = request.copy()
+    r = request["company"].copy()
     p = MetadataMixin()
 
     p["refinery_id"] = r["refinery_id"]
@@ -357,7 +357,7 @@ def make_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
     print("make_tech_payload()")
-    r = request.copy()
+    r = request["company"].copy()
     p = MetadataMixin()
 
     p["refinery_id"] = r["refinery_id"]
