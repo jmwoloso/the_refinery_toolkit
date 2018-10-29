@@ -151,9 +151,9 @@ def get_valid_url(domain=None):
     return url
 
 
-def _download_from_gcs(bucket_name=None, file_name=None):
+def download_from_gcs(bucket_name=None, file_name=None):
     """Utility function to upload the json to GCS."""
-    print("_download_from_gcs()")
+    print("download_from_gcs()")
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob = bucket.blob(file_name)
@@ -173,11 +173,11 @@ def _download_from_gcs(bucket_name=None, file_name=None):
         pass
 
 
-def _insert_bq_row(dataset=None, table=None, schema=None,
-                   payload=None, payload_type=None):
+def insert_bq_row(dataset=None, table=None, schema=None,
+                  payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
-    print("_insert_wp_rows()")
+    print("insert_bq_row()")
     # configs for bq
     client = bq.Client()
     job_config = bq.LoadJobConfig()
