@@ -8,7 +8,7 @@ __license__ = "BSD 3 clause"
 import os
 import base64
 
-import googleapiclient
+import googleapiclient.discovery
 from google.cloud import storage
 import clearbit
 
