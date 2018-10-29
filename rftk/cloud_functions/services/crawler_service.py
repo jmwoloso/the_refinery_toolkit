@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 from google.cloud import language
 from bs4 import BeautifulSoup
 
+from .classes import MetadataMixin
+
 
 def is_email_link(href=None):
     """Utility function to determine whether the supplied href attribute
@@ -258,3 +260,90 @@ def crawl_and_parse(url=None):
                              "html.parser")
     else:
         return "error: {}".format(resp)
+
+
+def make_crawler_gcs_payload(request=None):
+    """Utility function to flatten and parse the fields we need in
+    BQ."""
+    print("make_crawler_gcs_payload()")
+    p = MetadataMixin()
+    r = request.copy()
+
+    p["domain"] = r["domain"]
+    p["url"] = r["url"]
+    p["html_string"] = r["document"]
+    p["wp_themes"] = r["wp_themes"]
+    p["wp_plugins"] = r["wp_plugins"]
+    p["all_links"] = r["all_links"]
+    p["internal_links"] = r["internal_links"]
+    p["external_links"] = r["external_links"]
+    p["href_emails"] = r["href_emails"]
+    p["href_phones"] = r["href_phones"]
+    p["href_socials"] = r["href_socials"]
+    p["meta_keywords"] = r["meta_keywords"]
+    p["meta_description"] = r["meta_description"]
+    # add the metadata we injected to the request along the way
+    p["refinery_id"] = r["refinery_id"]
+    p["refined_at"] = r["refined_at"]
+    p["refined_date"] = r["refined_date"]
+    p["sfdc_lead_id"] = r["sfdc_lead_id"]
+    p["sfdc_contact_id"] = r["sfdc_contact_id"]
+    p["sfdc_account_id"] = r["sfdc_account_id"]
+    p["sfdc_asset_id"] = r["sfdc_asset_id"]
+    p["netsuite_contract_id"] = r["netsuite_contract_id"]
+    p["marketo_lead_id"] = r["marketo_lead_id"]
+    p["heap_id"] = r["heap_id"]
+    p["amplitude_id"] = r["amplitude_id"]
+    p["tealium_id"] = request["tealium_id"]
+    p["cas_id"] = request["cas_id"]
+    p["app_name"] = r["app_name"]
+    # TODO: should we keep all the content classifications if > 1 are
+    # returned?
+    max_class = None
+    max_likelihood = 0.0
+    for cat, prob in r["content_classification"].items():
+        if prob > max_likelihood:
+            max_likelihood = prob
+            max_class = cat
+
+        p["classification_category"] = max_class
+        p["classification_confidence"] = max_likelihood
+        # there are 1, 2 or 3 possible levels deep for the
+        # classification
+        # https://cloud.google.com/natural-language/docs/categories
+        cat_list = max_class.split("/")[1:]
+        if len(cat_list) == 1:
+            p["classification_category_first"], \
+            p["classification_category_second"], \
+            p["classification_category_third"] = cat_list[0], None, None
+        if len(cat_list) == 2:
+            (
+                p["classification_category_first"],
+                p["classification_category_second"]
+            ), \
+            p["classification_category_third"] = cat_list, None
+        if len(cat_list) == 3:
+            p["classification_category_first"], \
+            p["classification_category_second"], \
+            p["classification_category_third"] = cat_list
+    return p
+
+
+# TODO: can we abstract this to fit all cases (tags, tech, wp)
+def make_wp_payload(request=None):
+    """Utility function that creates a payload for the Wordpress
+    bucket."""
+    print("make_wp_payload()")
+    r = request.copy()
+    p = MetadataMixin()
+
+    p["refinery_id"] = r["refinery_id"]
+    p["refined_at"] = r["refined_at"]
+    p["refined_date"] = r["refined_date"]
+    p["domain"] = r["domain"]
+    p["url"] = r["url"]
+    if len(r["wp_themes"]) != 0:
+        p["wp_themes"] = r["wp_themes"]
+    if len(r["wp_plugins"]) != 0:
+        p["wp_plugins"] = r["wp_plugins"]
+    return p
