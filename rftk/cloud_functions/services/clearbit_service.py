@@ -340,7 +340,7 @@ def make_tags_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
     print("make_tags_payload()")
-    r = request["company"].copy()
+    r = request.copy()
     p = MetadataMixin()
 
     p["refinery_id"] = r["refinery_id"]
@@ -348,7 +348,7 @@ def make_tags_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
     p["url"] = r["url"]
-    p["tags"] = r["tags"]
+    p["tags"] = r["company"]["tags"]
     return p
 
 
@@ -357,7 +357,7 @@ def make_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
     print("make_tech_payload()")
-    r = request["company"].copy()
+    r = request.copy()
     p = MetadataMixin()
 
     p["refinery_id"] = r["refinery_id"]
@@ -365,5 +365,5 @@ def make_tech_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
     p["url"] = r["url"]
-    p["tech"] = r["tech"]
+    p["tech"] = r["company"]["tech"]
     return p
