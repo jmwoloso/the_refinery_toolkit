@@ -69,6 +69,7 @@ def decrypt_with_kms(project_id=None, location_id=None,
 
     return plaintext
 
+
 def get_service_configs(service=None):
     """Utility function to set configurations for the service."""
     print("get_service_configs()")
@@ -165,7 +166,10 @@ def make_clearbit_company_gcs_payload(request=None):
 
     # p["tags"] = r["tags"]
     # TODO: parse this to remove /r
-    p["description"] = r["description"].replace("\r", " ")
+    if r["description"] is not None:
+        p["description"] = r["description"].replace("\r", " ")
+    else:
+        p["description"] = r["description"]
     p["year_founded"] = r["foundedYear"]
     p["location"] = r["location"]
     p["time_zone"] = r["timeZone"]
@@ -196,7 +200,10 @@ def make_clearbit_company_gcs_payload(request=None):
     # TODO: parse the text from bio to eliminate /r
     p["twitter_handle"] = r["twitter"]["handle"]
     p["twitter_id"] = r["twitter"]["id"]
-    p["twitter_bio"] = r["twitter"]["bio"].replace("\r", " ")
+    if r["twitter"]["bio"] is not None:
+        p["twitter_bio"] = r["twitter"]["bio"].replace("\r", " ")
+    else:
+        p["twitter_bio"] = r["twitter"]["bio"]
     p["twitter_follower_count"] = r["twitter"]["followers"]
     p["twitter_following_count"] = r["twitter"]["following"]
     p["twitter_location"] = r["twitter"]["location"]
@@ -276,7 +283,10 @@ def make_clearbit_person_gcs_payload(request=None):
     p["longitude"] = r["geo"]["lng"]
 
     # social
-    p["bio"] = r["bio"].replace("\r", " ")
+    if r["bio"] is not None:
+        p["bio"] = r["bio"].replace("\r", " ")
+    else:
+        p["bio"] = r["bio"]
     p["site"] = r["site"]
     p["avatar"] = r["avatar"]
 
