@@ -281,7 +281,10 @@ def make_crawler_gcs_payload(request=None):
     p["href_phones"] = r["href_phones"]
     p["href_socials"] = r["href_socials"]
     p["meta_keywords"] = r["meta_keywords"]
-    p["meta_description"] = r["meta_description"]
+    if r["meta_description"] is not None:
+        p["meta_description"] = r["meta_description"].replace("\r", "")
+    else:
+        p["meta_description"] = r["meta_description"]
     # add the metadata we injected to the request along the way
     p["refinery_id"] = r["refinery_id"]
     p["refined_at"] = r["refined_at"]
@@ -304,19 +307,68 @@ def make_crawler_gcs_payload(request=None):
         # https://cloud.google.com/natural-language/docs/categories
         cat_list = max_class.split("/")[1:]
         if len(cat_list) == 1:
-            p["classification_category_first"], \
-            p["classification_category_second"], \
-            p["classification_category_third"] = cat_list[0], None, None
+            p["tier1_classification"], \
+            p["tier2_classification"], \
+            p["tier3_classification"] = cat_list[0], None, None
         if len(cat_list) == 2:
             (
-                p["classification_category_first"],
-                p["classification_category_second"]
+                p["tier1_classification"],
+                p["tier2_classification"]
             ), \
-            p["classification_category_third"] = cat_list, None
+            p["tier3_classification"] = cat_list, None
         if len(cat_list) == 3:
-            p["classification_category_first"], \
-            p["classification_category_second"], \
-            p["classification_category_third"] = cat_list
+            p["tier1_classification"], \
+            p["tier2_classification"], \
+            p["tier3_classification"] = cat_list
+    print("payload: {}".format(p))
+    return p
+
+
+def make_crawler_bq_payload(request=None):
+    """Utility function to flatten and parse the fields we need in
+    BQ."""
+    print("make_crawler_gcs_payload()")
+    p = MetadataMixin()
+    r = request.copy()
+
+    p["domain"] = r["domain"]
+    p["url"] = r["url"]
+    p["html_string"] = r["document"]
+    p["all_links"] = " >>> ".join(
+        r["all_links"]
+    )
+    p["internal_links"] = " >>> ".join(
+        r["internal_links"]
+    )
+    p["external_links"] = " >>> ".join(
+        r["external_links"]
+    )
+    p["href_emails"] = " >>> ".join(
+        r["href_emails"]
+    )
+    p["href_phones"] = " >>> ".join(
+        r["href_phones"]
+    )
+    p["href_socials"] = " >>> ".join(
+        r["href_socials"]
+    )
+    p["meta_keywords"] = " >>> ".join(
+        r["meta_keywords"]
+    )
+    p["meta_description"] = r["meta_description"]
+    # add the metadata we injected to the request along the way
+    p["refinery_id"] = r["refinery_id"]
+    p["refined_at"] = r["refined_at"]
+    p["refined_date"] = r["refined_date"]
+    p["sfdc_lead_id"] = r["sfdc_lead_id"]
+    p["sfdc_contact_id"] = r["sfdc_contact_id"]
+    p["classification_confidence"] = r["classification_confidence"]
+    p["tier1_classification"] = \
+        r["tier1_classification"]
+    p["tier2_classification"] = \
+        r["tier2_classification"]
+    p["tier3_classification"] = \
+        r["tier3_classification"]
     print("payload: {}".format(p))
     return p
 
