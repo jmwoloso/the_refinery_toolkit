@@ -1,6 +1,6 @@
 """
 schemas.py: Schemas for the BiqQuery tables where the enriched data is
-            stored.
+stored.
 """
 
 __author__ = "jason wolosonovich <jason@avaland.io>"
@@ -98,3 +98,12 @@ ASSET_HISTORY_SCHEMA = [
                    field_type="string",
                    mode="required")
 ]
+
+# crawler payload
+CRAWLER_SCHEMA = ""
+
+# clearbit person
+CLEARBIT_PERSON_SCHEMA = ""
+
+# clearbit company
+CLEARBIT_COMPANY_SCHEMA = ""

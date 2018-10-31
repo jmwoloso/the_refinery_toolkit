@@ -120,6 +120,7 @@ def get_service_configs(service=None):
         pass
 
 
+# TODO: to rftk.clearbit_service module
 def make_clearbit_company_gcs_payload(request=None):
     """Utility function to flatten and parse the fields we need in
     BQ."""
@@ -133,15 +134,6 @@ def make_clearbit_company_gcs_payload(request=None):
     p["refined_date"] = request["refined_date"]
     p["sfdc_lead_id"] = request["sfdc_lead_id"]
     p["sfdc_contact_id"] = request["sfdc_contact_id"]
-    p["sfdc_account_id"] = request["sfdc_account_id"]
-    p["sfdc_asset_id"] = request["sfdc_asset_id"]
-    p["netsuite_contract_id"] = request["netsuite_contract_id"]
-    p["marketo_lead_id"] = request["marketo_lead_id"]
-    p["heap_id"] = request["heap_id"]
-    p["amplitude_id"] = request["amplitude_id"]
-    p["tealium_id"] = request["tealium_id"]
-    p["cas_id"] = request["cas_id"]
-    p["app_name"] = request["app_name"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
 
@@ -150,11 +142,17 @@ def make_clearbit_company_gcs_payload(request=None):
     p["company_name"] = r["name"]
     p["legal_name"] = r["legalName"]
     p["company_domain"] = r["domain"]
-    p["domain_aliases"] = r["domainAliases"]
+    p["domain_aliases"] = " >>> ".join(
+        r["domainAliases"]
+    )
 
     # site
-    p["phone_numbers"] = r["site"]["phoneNumbers"]
-    p["email_addresses"] = r["site"]["emailAddresses"]
+    p["phone_numbers"] = " >>> ".join(
+        r["site"]["phoneNumbers"]
+    )
+    p["email_addresses"] = " >>> ".join(
+        r["site"]["emailAddresses"]
+    )
 
     # category
     p["industry"] = r["category"]["industry"]
@@ -234,7 +232,6 @@ def make_clearbit_company_gcs_payload(request=None):
 
     # p["tech"] = r["tech"]
     p["parent_domain"] = r["parent"]["domain"]
-
     return p
 
 
@@ -251,15 +248,6 @@ def make_clearbit_person_gcs_payload(request=None):
     p["refined_date"] = request["refined_date"]
     p["sfdc_lead_id"] = request["sfdc_lead_id"]
     p["sfdc_contact_id"] = request["sfdc_contact_id"]
-    p["sfdc_account_id"] = request["sfdc_account_id"]
-    p["sfdc_asset_id"] = request["sfdc_asset_id"]
-    p["netsuite_contract_id"] = request["netsuite_contract_id"]
-    p["marketo_lead_id"] = request["marketo_lead_id"]
-    p["heap_id"] = request["heap_id"]
-    p["amplitude_id"] = request["amplitude_id"]
-    p["tealium_id"] = request["tealium_id"]
-    p["cas_id"] = request["cas_id"]
-    p["app_name"] = request["app_name"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
 
@@ -322,6 +310,12 @@ def make_clearbit_person_gcs_payload(request=None):
         for d in r["gravatar"]["urls"]:
             p["gravatar_url_titles"].append(d["value"])
             p["gravatar_urls"].append(d["title"])
+    p["gravatar_url_titles"] = " >>> ".join(
+        p["gravatar_url_titles"]
+    )
+    p["gravatar_urls"] = " >>> ".join(
+        p["gravatar_urls"]
+    )
     p["gravatar_avatar"] = r["gravatar"]["avatar"]
     p["gravatar_avatar_types"] = list()
     p["gravatar_avatar_urls"] = list()
@@ -329,6 +323,12 @@ def make_clearbit_person_gcs_payload(request=None):
         for d in r["gravatar"]["avatars"]:
             p["gravatar_avatar_types"].append(d["type"])
             p["gravatar_avatar_urls"].append(d["url"])
+    p["gravatar_avatar_types"] = " >>> ".join(
+        p["gravatar_avatar_types"]
+    )
+    p["gravatar_avatar_urls"] = " >>> ".join(
+        p["gravatar_avatar_urls"]
+    )
 
     p["fuzzy_match"] = r["fuzzy"]
     p["is_email_provider"] = r["emailProvider"]

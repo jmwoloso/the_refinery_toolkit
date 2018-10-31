@@ -288,15 +288,6 @@ def make_crawler_gcs_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["sfdc_lead_id"] = r["sfdc_lead_id"]
     p["sfdc_contact_id"] = r["sfdc_contact_id"]
-    p["sfdc_account_id"] = r["sfdc_account_id"]
-    p["sfdc_asset_id"] = r["sfdc_asset_id"]
-    p["netsuite_contract_id"] = r["netsuite_contract_id"]
-    p["marketo_lead_id"] = r["marketo_lead_id"]
-    p["heap_id"] = r["heap_id"]
-    p["amplitude_id"] = r["amplitude_id"]
-    p["tealium_id"] = request["tealium_id"]
-    p["cas_id"] = request["cas_id"]
-    p["app_name"] = r["app_name"]
     # TODO: should we keep all the content classifications if > 1 are
     # returned?
     max_class = None
@@ -326,6 +317,7 @@ def make_crawler_gcs_payload(request=None):
             p["classification_category_first"], \
             p["classification_category_second"], \
             p["classification_category_third"] = cat_list
+    print("payload: {}".format(p))
     return p
 
 
@@ -346,4 +338,5 @@ def make_wp_payload(request=None):
         p["wp_themes"] = r["wp_themes"]
     if len(r["wp_plugins"]) != 0:
         p["wp_plugins"] = r["wp_plugins"]
+    print("payload: {}".format(p))
     return p

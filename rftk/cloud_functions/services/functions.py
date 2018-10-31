@@ -30,9 +30,17 @@ def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
             ),
             content_type="application/json"
         )
+        print("payload: {}".format(payload))
+        return payload
+
     # TODO: what should we do here?
     except Exception as e:
-        pass
+        err = {
+            "error_message": e,
+            "status_code": "unknown"
+        }
+
+    print(err)
 
 
 def publish_to_endpoint(topic, message):
@@ -370,3 +378,12 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
         if len(errors) != 0:
             print(errors)
+
+    if payload_type == "crawler":
+        pass
+
+    if payload_type == "person":
+        pass
+
+    if payload_type == "company":
+        pass
