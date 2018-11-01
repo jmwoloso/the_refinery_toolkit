@@ -333,7 +333,7 @@ def make_crawler_bq_payload(request=None):
 
     p["domain"] = r["domain"]
     p["url"] = r["url"]
-    p["html_string"] = r["document"]
+    p["html_string"] = r["html_string"]
     p["all_links"] = " >>> ".join(
         r["all_links"]
     )
