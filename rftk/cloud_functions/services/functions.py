@@ -227,13 +227,10 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     domain = payload["domain"]
     url = payload["url"]
 
-    # print("refinery_id: {}".format(refinery_id))
-    # print("refined_at: {}".format(refined_at))
-    # print("refined_date: {}".format(refined_date))
-    # print("domain: {}".format(domain))
-    # print("url: {}".format(url))
-    if payload_type == "wp":
-        if len(payload["wp_themes"]) != 0:
+    if payload_type == "asset":
+        keys = payload.keys()
+        if "wp_themes" in keys:
+        # if len(payload["wp_themes"]) != 0:
             print("found themes.")
             for theme in payload["wp_themes"]:
                 row = [
@@ -248,21 +245,22 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     ]
                 ]
 
-                errors = client.create_rows(
-                    table=table,
-                    rows=row,
-                    selected_fields=schema
-                )
-                # newer versions of the library
-                # errors = bq_client.insert_rows(
-                #     table,
-                #     row,
+                # errors = client.create_rows(
+                #     table=table,
+                #     rows=row,
                 #     selected_fields=schema
                 # )
+                # newer versions of the library
+                errors = client.insert_rows(
+                    table,
+                    row,
+                    selected_fields=schema
+                )
                 if len(errors) != 0:
                     print(errors)
 
-        if len(payload["wp_plugins"]) != 0:
+        if "wp_plugins" in keys:
+        # if len(payload["wp_plugins"]) != 0:
             print("found plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
@@ -277,18 +275,18 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     ]
                 ]
 
-                errors = client.create_rows(
-                    table=table,
-                    rows=row,
-                    selected_fields=schema
-                )
-
-                # # newer versions of the library
-                # errors = client.insert_rows(
-                #     table,
-                #     row,
+                # errors = client.create_rows(
+                #     table=table,
+                #     rows=row,
                 #     selected_fields=schema
                 # )
+
+                # newer versions of the library
+                errors = client.insert_rows(
+                    table,
+                    row,
+                    selected_fields=schema
+                )
 
                 if len(errors) != 0:
                     print(errors)
@@ -306,18 +304,18 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 ]
             ]
 
-            errors = client.create_rows(
-                table=table,
-                rows=row,
-                selected_fields=schema
-            )
-
-            # # newer versions of the library
-            # errors = client.insert_rows(
-            #     table,
-            #     row,
+            # errors = client.create_rows(
+            #     table=table,
+            #     rows=row,
             #     selected_fields=schema
             # )
+
+            # newer versions of the library
+            errors = client.insert_rows(
+                table,
+                row,
+                selected_fields=schema
+            )
 
             if len(errors) != 0:
                 print(errors)
@@ -335,18 +333,18 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 ]
             ]
 
-            errors = client.create_rows(
-                table=table,
-                rows=row,
-                selected_fields=schema
-            )
-
-            # # newer versions of the library
-            # errors = client.insert_rows(
-            #     table,
-            #     row,
+            # errors = client.create_rows(
+            #     table=table,
+            #     rows=row,
             #     selected_fields=schema
             # )
+
+            # newer versions of the library
+            errors = client.insert_rows(
+                table,
+                row,
+                selected_fields=schema
+            )
 
             if len(errors) != 0:
                 print(errors)
@@ -363,27 +361,210 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             ]
         ]
 
-        errors = client.create_rows(
-            table=table,
-            rows=row,
-            selected_fields=schema
-        )
-
-        # # newer versions of the library
-        # errors = client.insert_rows(
-        #     table,
-        #     row,
+        # errors = client.create_rows(
+        #     table=table,
+        #     rows=row,
         #     selected_fields=schema
         # )
+
+        # newer versions of the library
+        errors = client.insert_rows(
+            table,
+            row,
+            selected_fields=schema
+        )
 
         if len(errors) != 0:
             print(errors)
 
     if payload_type == "crawler":
-        pass
+        row = [
+            [
+                refinery_id,
+                refined_at,
+                refined_date,
+                payload["sfdc_lead_id"],
+                payload["sfdc_contact_id"],
+                domain,
+                url,
+                payload["all_links"],
+                payload["internal_links"],
+                payload["external_links"],
+                payload["href_emails"],
+                payload["href_phones"],
+                payload["href_socials"],
+                payload["meta_keywords"],
+                payload["meta_description"],
+                payload["tier1_classification"],
+                payload["tier2_classification"],
+                payload["tier3_classification"],
+                payload["classification_likelihood"],
+                payload["html_string"]
+            ]
+        ]
+
+        # newer versions of the library
+        errors = client.insert_rows(
+            table,
+            row,
+            selected_fields=schema
+        )
+
+        if len(errors) != 0:
+            print(errors)
 
     if payload_type == "person":
-        pass
+        row = [
+            [
+                refinery_id,
+                refined_at,
+                refined_date,
+                payload["sfdc_lead_id"],
+                payload["sfdc_contact_id"],
+                domain,
+                url,
+                payload["clearbit_person_id"],
+                payload["clearbit_indexed_at"],
+                payload["full_name"],
+                payload["first_name"],
+                payload["last_name"],
+                payload["email"],
+                payload["location"],
+                payload["time_zone"],
+                payload["utc_offset"],
+                payload["city"],
+                payload["state"],
+                payload["state_code"],
+                payload["country"],
+                payload["country_code"],
+                payload["latitude"],
+                payload["longitude"],
+                payload["bio"],
+                payload["site"],
+                payload["avatar"],
+                payload["employment_domain"],
+                payload["employent_name"],
+                payload["employment_title"],
+                payload["employment_role"],
+                payload["employment_seniority"],
+                payload["facebook_handle"],
+                payload["github_handle"],
+                payload["github_avatar"],
+                payload["github_company"],
+                payload["github_blog"],
+                payload["github_followers"],
+                payload["github_following"],
+                payload["twitter_handle"],
+                payload["twitter_id"],
+                payload["twitter_bio"],
+                payload["twitter_followers"],
+                payload["twitter_following"],
+                payload["twitter_location"],
+                payload["twitter_site"],
+                payload["twitter_avatar"],
+                payload["linkedin_handle"],
+                payload["googleplus_handle"],
+                payload["gravatar_handle"],
+                payload["gravatar_url_titles"],
+                payload["gravatar_urls"],
+                payload["gravatar_avatar"],
+                payload["gravatar_avatar_types"],
+                payload["gravatar_avatar_urls"],
+                payload["fuzzy_match"],
+                payload["is_email_provider"],
+
+            ]
+        ]
+
+        # newer versions of the library
+        errors = client.insert_rows(
+            table,
+            row,
+            selected_fields=schema
+        )
+
+        if len(errors) != 0:
+            print(errors)
 
     if payload_type == "company":
-        pass
+        row = [
+            [
+                refinery_id,
+                refined_at,
+                refined_date,
+                payload["sfdc_lead_id"],
+                payload["sfdc_contact_id"],
+                domain,
+                url,
+                payload["clearbit_company_id"],
+                payload["clearbit_indexed_at"],
+                payload["company_name"],
+                payload["legal_name"],
+                payload["company_domain"],
+                payload["domain_aliases"],
+                payload["phone_numbers"],
+                payload["email_addresses"],
+                payload["industry"],
+                payload["industry_group"],
+                payload["sub_industry"],
+                payload["sector"],
+                payload["sic_code"],
+                payload["naics_code"],
+                payload["description"],
+                payload["year_founded"],
+                payload["location"],
+                payload["street_number"],
+                payload["street_name"],
+                payload["sub_premise"],
+                payload["city"],
+                payload["state"],
+                payload["state_code"],
+                payload["postal_code"],
+                payload["country"],
+                payload["country_code"],
+                payload["latitude"],
+                payload["longitude"],
+                payload["time_zone"],
+                payload["utc_offset"],
+                payload["company_phone"],
+                payload["number_of_employees"],
+                payload["number_of_employees_range"],
+                payload["fiscal_year_ends"],
+                payload["market_cap"],
+                payload["total_raised"],
+                payload["company_type"],
+                payload["ticker_symbol"],
+                payload["tax_ein"],
+                payload["annual_revenue"],
+                payload["estimated_annual_revenue"],
+                payload["company_logo"],
+                payload["crunchbase_handle"],
+                payload["alexa_us_rank"],
+                payload["alexa_global_rank"],
+                payload["parent_domain"],
+                payload["facebook_handle"],
+                payload["facebook_likes"],
+                payload["linkedin_handle"],
+                payload["twitter_handle"],
+                payload["twitter_avatar"],
+                payload["twitter_bio"],
+                payload["twitter_follower_count"],
+                payload["twitter_following_count"],
+                payload["twitter_id"],
+                payload["twitter_location"],
+                payload["twitter_site_url"],
+                payload["fuzzy_match"],
+                payload["is_email_provider"]
+
+            ]
+        ]
+
+        # newer versions of the library
+        errors = client.insert_rows(
+            table,
+            row,
+            selected_fields=schema
+        )
+
+        if len(errors) != 0:
+            print(errors)
