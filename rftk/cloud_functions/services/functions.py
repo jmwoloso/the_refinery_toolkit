@@ -398,7 +398,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["tier1_classification"],
                 payload["tier2_classification"],
                 payload["tier3_classification"],
-                payload["classification_likelihood"],
+                payload["classification_confidence"],
                 payload["html_string"]
             ]
         ]

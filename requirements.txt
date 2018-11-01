@@ -5,7 +5,6 @@ chardet==3.0.4
 clearbit==0.1.7
 Click==7.0
 decorator==4.3.0
-Flask==1.0.2
 google-api-core==1.6.0a1
 google-api-python-client==1.7.4
 google-auth==1.5.1
@@ -22,13 +21,6 @@ grpc-google-iam-v1==0.11.4
 grpcio==1.16.0
 httplib2==0.11.3
 idna==2.7
-itsdangerous==1.1.0
-Jinja2==2.10
-MarkupSafe==1.0
-mypy==0.641
-mypy-extensions==0.4.1
-numpy==1.15.3
-pandas==0.23.4
 protobuf==3.6.1
 psutil==5.4.7
 pyasn1==0.4.4
@@ -42,4 +34,3 @@ typed-ast==1.1.0
 uritemplate==3.0.0
 urllib3==1.24
 validators==0.12.2
-Werkzeug==0.14.1
