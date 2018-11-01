@@ -5,7 +5,8 @@ from .functions import get_service_params, get_valid_url, \
     download_from_gcs, insert_bq_row
 
 from .schemas import MOBILE_FRIENDLY_SCHEMA, ASSET_HISTORY_SCHEMA, \
-    TAGS_HISTORY_SCHEMA, TECH_HISTORY_SCHEMA
+    TAGS_HISTORY_SCHEMA, TECH_HISTORY_SCHEMA, CRAWLER_SCHEMA, \
+    CLEARBIT_PERSON_SCHEMA, CLEARBIT_COMPANY_SCHEMA
 
 
 __all__ = [
@@ -16,6 +17,9 @@ __all__ = [
     "ASSET_HISTORY_SCHEMA",
     "TECH_HISTORY_SCHEMA",
     "TAGS_HISTORY_SCHEMA",
+    "CRAWLER_SCHEMA",
+    "CLEARBIT_COMPANY_SCHEMA",
+    "CLEARBIT_PERSON_SCHEMA",
     "MetadataMixin",
 ]
 
