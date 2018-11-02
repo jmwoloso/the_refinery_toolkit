@@ -3,7 +3,7 @@ schemas.py: Schemas for the BiqQuery tables where the enriched data is
 stored.
 """
 
-__author__ = "jason wolosonovich <jason@avaland.io>"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 from google.cloud import bigquery as bq
@@ -75,7 +75,7 @@ TECH_HISTORY_SCHEMA = [
 ]
 
 # crawler asset history
-ASSET_HISTORY_SCHEMA = [
+CRAWLER_TECH_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_id",
                    field_type="string",
                    mode="required"),
@@ -246,7 +246,7 @@ CLEARBIT_PERSON_SCHEMA = [
     bq.SchemaField(name="employment_domain",
                    field_type="string",
                    mode="nullable"),
-    bq.SchemaField(name="employent_name",
+    bq.SchemaField(name="employment_name",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="employment_title",
@@ -328,7 +328,7 @@ CLEARBIT_PERSON_SCHEMA = [
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="fuzzy_match",
-                   field_type="string",
+                   field_type="boolean",
                    mode="nullable"),
     bq.SchemaField(name="is_email_provider",
                    field_type="string",
@@ -528,9 +528,6 @@ CLEARBIT_COMPANY_SCHEMA = [
                    mode="nullable"),
     bq.SchemaField(name="twitter_site_url",
                    field_type="string",
-                   mode="nullable"),
-    bq.SchemaField(name="fuzzy_match",
-                   field_type="boolean",
                    mode="nullable"),
     bq.SchemaField(name="is_email_provider",
                    field_type="boolean",

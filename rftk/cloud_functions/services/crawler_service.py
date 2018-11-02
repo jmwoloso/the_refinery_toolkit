@@ -2,7 +2,7 @@
 crawler_service.py: Utility functions used by the crawler service.
 """
 
-__author__ = "jason wolosonovich <jason@avaland.io>"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 import re
@@ -23,7 +23,7 @@ def is_email_link(href=None):
 
 
 def is_tel_link(href=None):
-    """Utility function to detemrine whether the supplied href
+    """Utility function to determine whether the supplied href
     attribute is a telephone link."""
     print("is_tel_link()")
     return href and 'tel:' in href
@@ -162,6 +162,7 @@ def get_all_links(document=None):
     # remove empty strings
     all_links = [link for link in all_links if len(link) > 0 and
                  link != '/']
+    all_links = list(set(all_links))
     return all_links
 
 
@@ -170,14 +171,24 @@ def get_internal_links(url=None, links=None):
     print("get_internal_links()")
     internal_links_ = list()
     for link in links:
+        if link is None:
+            continue
+        print(link)
         url_host = urlparse(url).hostname
         domain = urlparse(url).hostname.split(".")[1]
+        print(domain)
         link_host = urlparse(link).hostname
-        if link_host is None:
-            continue
-        elif link.startswith("/") or url_host == link_host or \
-                domain in link_host:
+        print(link_host)
+        if link.startswith("/"):
+            print("True")
             internal_links_.append(link)
+        if url_host == link_host:
+            internal_links_.append(link)
+        if link_host is not None and domain in link_host:
+            internal_links_.append(link)
+        else:
+            continue
+
     return internal_links_
 
 
@@ -281,10 +292,10 @@ def make_crawler_gcs_payload(request=None):
     p["href_phones"] = r["href_phones"]
     p["href_socials"] = r["href_socials"]
     p["meta_keywords"] = r["meta_keywords"]
-    if r["meta_description"] is not None:
+    if len(r["meta_description"]) != 0:
         p["meta_description"] = r["meta_description"].replace("\r", "")
     else:
-        p["meta_description"] = r["meta_description"]
+        p["meta_description"] = None
     # add the metadata we injected to the request along the way
     p["refinery_id"] = r["refinery_id"]
     p["refined_at"] = r["refined_at"]

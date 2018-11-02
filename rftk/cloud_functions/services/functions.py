@@ -3,7 +3,7 @@ functions.py: Utility functions used throughout the services within the
               Refinery.
 """
 
-__author__ = "jason wolosonovich <jason@avaland.io>"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 import base64
@@ -212,14 +212,6 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     print("payload: {}".format(payload))
     print("payload type: {}".format(payload_type))
 
-    # try to create the table if it doesn't exist
-    # try:
-    #     table = client.create_table(table)
-    #     print("creating table.")
-    # except exceptions.Conflict as e:
-    #     print("table exists.")
-    # TODO: update the logic in this as it evolves for clearbit stuff
-
     # get the static identifying properties
     refinery_id = payload["refinery_id"]
     refined_at = payload["refined_at"]
@@ -227,14 +219,13 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     domain = payload["domain"]
     url = payload["url"]
 
-    if payload_type == "asset":
+    if payload_type == "crawler_tech":
         keys = payload.keys()
         if "wp_themes" in keys:
-        # if len(payload["wp_themes"]) != 0:
             print("found themes.")
             for theme in payload["wp_themes"]:
                 row = [
-                    [
+                    (
                         refinery_id,
                         refined_at,
                         refined_date,
@@ -242,15 +233,9 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                         url,
                         theme,
                         "theme"
-                    ]
+                    )
                 ]
 
-                # errors = client.create_rows(
-                #     table=table,
-                #     rows=row,
-                #     selected_fields=schema
-                # )
-                # newer versions of the library
                 errors = client.insert_rows(
                     table,
                     row,
@@ -260,11 +245,10 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     print(errors)
 
         if "wp_plugins" in keys:
-        # if len(payload["wp_plugins"]) != 0:
             print("found plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
-                    [
+                    (
                         refinery_id,
                         refined_at,
                         refined_date,
@@ -272,16 +256,9 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                         url,
                         plugin,
                         "plugin"
-                    ]
+                    )
                 ]
 
-                # errors = client.create_rows(
-                #     table=table,
-                #     rows=row,
-                #     selected_fields=schema
-                # )
-
-                # newer versions of the library
                 errors = client.insert_rows(
                     table,
                     row,
@@ -294,23 +271,16 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     if payload_type == "tags":
         for tag in payload["tags"]:
             row = [
-                [
+                (
                     refinery_id,
                     refined_at,
                     refined_date,
                     domain,
                     url,
                     tag
-                ]
+                )
             ]
 
-            # errors = client.create_rows(
-            #     table=table,
-            #     rows=row,
-            #     selected_fields=schema
-            # )
-
-            # newer versions of the library
             errors = client.insert_rows(
                 table,
                 row,
@@ -323,23 +293,16 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     if payload_type == "tech":
         for tech in payload["tech"]:
             row = [
-                [
+                (
                     refinery_id,
                     refined_at,
                     refined_date,
                     domain,
                     url,
                     tech
-                ]
+                )
             ]
 
-            # errors = client.create_rows(
-            #     table=table,
-            #     rows=row,
-            #     selected_fields=schema
-            # )
-
-            # newer versions of the library
             errors = client.insert_rows(
                 table,
                 row,
@@ -351,23 +314,16 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "mobile":
         row = [
-            [
+            (
                 refinery_id,
                 refined_at,
                 refined_date,
                 domain,
                 url,
                 payload["test_results"]
-            ]
+            )
         ]
 
-        # errors = client.create_rows(
-        #     table=table,
-        #     rows=row,
-        #     selected_fields=schema
-        # )
-
-        # newer versions of the library
         errors = client.insert_rows(
             table,
             row,
@@ -379,7 +335,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "crawler":
         row = [
-            [
+            (
                 refinery_id,
                 refined_at,
                 refined_date,
@@ -400,10 +356,9 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["tier3_classification"],
                 payload["classification_confidence"],
                 payload["html_string"]
-            ]
+            )
         ]
 
-        # newer versions of the library
         errors = client.insert_rows(
             table,
             row,
@@ -415,7 +370,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "person":
         row = [
-            [
+            (
                 refinery_id,
                 refined_at,
                 refined_date,
@@ -443,7 +398,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["site"],
                 payload["avatar"],
                 payload["employment_domain"],
-                payload["employent_name"],
+                payload["employment_name"],
                 payload["employment_title"],
                 payload["employment_role"],
                 payload["employment_seniority"],
@@ -473,10 +428,9 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["fuzzy_match"],
                 payload["is_email_provider"],
 
-            ]
+            )
         ]
 
-        # newer versions of the library
         errors = client.insert_rows(
             table,
             row,
@@ -488,7 +442,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "company":
         row = [
-            [
+            (
                 refinery_id,
                 refined_at,
                 refined_date,
@@ -553,13 +507,11 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["twitter_id"],
                 payload["twitter_location"],
                 payload["twitter_site_url"],
-                payload["fuzzy_match"],
                 payload["is_email_provider"]
 
-            ]
+            )
         ]
 
-        # newer versions of the library
         errors = client.insert_rows(
             table,
             row,

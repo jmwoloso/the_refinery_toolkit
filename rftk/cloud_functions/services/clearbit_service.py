@@ -2,7 +2,7 @@
 clearbit_service.py: Utility functions used by the clearbit service.
 """
 
-__author__ = "jason wolosonovich <jason@avaland.io>"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 import os
@@ -186,10 +186,11 @@ def make_clearbit_company_gcs_payload(request=None):
     p["latitude"] = r["geo"]["lat"]
     p["longitude"] = r["geo"]["lng"]
 
-    p["logo"] = r["logo"]
+    p["company_logo"] = r["logo"]
 
     # fakebook
     p["facebook_handle"] = r["facebook"]["handle"]
+    p["facebook_likes"] = r["facebook"]["likes"]
 
     # linkedin
     p["linkedin_handle"] = r["linkedin"]["handle"]
@@ -205,7 +206,7 @@ def make_clearbit_company_gcs_payload(request=None):
     p["twitter_follower_count"] = r["twitter"]["followers"]
     p["twitter_following_count"] = r["twitter"]["following"]
     p["twitter_location"] = r["twitter"]["location"]
-    p["twitter_site"] = r["twitter"]["site"]
+    p["twitter_site_url"] = r["twitter"]["site"]
     p["twitter_avatar"] = r["twitter"]["avatar"]
 
     # crunchbase
@@ -214,21 +215,21 @@ def make_clearbit_company_gcs_payload(request=None):
     p["is_email_provider"] = r["emailProvider"]
     p["company_type"] = r["type"]
     p["ticker_symbol"] = r["ticker"]
-    p["us_ein"] = r["identifiers"]["usEIN"]
-    p["phone"] = r["phone"]
+    p["tax_ein"] = r["identifiers"]["usEIN"]
+    p["company_phone"] = r["phone"]
     p["clearbit_indexed_at"] = r["indexedAt"]
 
     # metrics
     p["alexa_us_rank"] = r["metrics"]["alexaUsRank"]
     p["alexa_global_rank"] = r["metrics"]["alexaGlobalRank"]
-    p["employees"] = r["metrics"]["employees"]
-    p["employees_range"] = r["metrics"]["employeesRange"]
+    p["number_of_employees"] = r["metrics"]["employees"]
+    p["number_of_employees_range"] = r["metrics"]["employeesRange"]
     p["market_cap"] = r["metrics"]["marketCap"]
-    p["raised_funding"] = r["metrics"]["raised"]
+    p["total_raised"] = r["metrics"]["raised"]
     p["annual_revenue"] = r["metrics"]["annualRevenue"]
     p["estimated_annual_revenue"] = r["metrics"][
         "estimatedAnnualRevenue"]
-    p["fiscal_year_end"] = r["metrics"]["fiscalYearEnd"]
+    p["fiscal_year_ends"] = r["metrics"]["fiscalYearEnd"]
 
     # p["tech"] = r["tech"]
     p["parent_domain"] = r["parent"]["domain"]

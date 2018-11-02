@@ -3,7 +3,7 @@ classes.py: utility classes used in the the Refinery.
 
 """
 
-__author__ = "jason wolosonovich <jason@avaland.io>"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 import json
