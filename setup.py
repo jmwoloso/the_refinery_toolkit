@@ -4,10 +4,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import rftk
+from rftk.cloud_functions import services
 
 setup(name="the_refinery_toolkit",
-      version=rftk.__version__,
+      version=services.__version__,
       description="The Refinery Toolkit (RFTK)",
       author="Jason Wolosonovich",
       author_email="jason@avaland.io",
