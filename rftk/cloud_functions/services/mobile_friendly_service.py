@@ -55,7 +55,7 @@ def check_mobile_friendly(request=None):
 
     # we never were able to successfully test the url
     if success is False:
-        resp_["test_results"] = resp.status + ": " + resp.reason
+        resp_["test_results"] = str(resp.status) + ": " + resp.reason
 
     else:
         # tests passed successfully
