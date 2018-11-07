@@ -222,7 +222,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     if payload_type == "crawler_tech":
         keys = payload.keys()
         if "wp_themes" in keys:
-            print("found themes.")
+            print("inserting themes.")
             for theme in payload["wp_themes"]:
                 row = [
                     (
@@ -245,7 +245,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     print(errors)
 
         if "wp_plugins" in keys:
-            print("found plugins.")
+            print("inserting plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
                     (
@@ -270,6 +270,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "tags":
         for tag in payload["tags"]:
+            print("inserting tags.")
             row = [
                 (
                     refinery_id,
@@ -292,6 +293,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     if payload_type == "tech":
         for tech in payload["tech"]:
+            print("inserting tech.")
             row = [
                 (
                     refinery_id,
@@ -313,6 +315,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 print(errors)
 
     if payload_type == "mobile":
+        print("inserting mobile test results.")
         row = [
             (
                 refinery_id,
@@ -334,6 +337,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             print(errors)
 
     if payload_type == "crawler":
+        print("inserting crawler results.")
         row = [
             (
                 refinery_id,
@@ -369,6 +373,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             print(errors)
 
     if payload_type == "person":
+        print("inserting clearbit person results.")
         row = [
             (
                 refinery_id,
@@ -441,6 +446,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             print(errors)
 
     if payload_type == "company":
+        print("inserting clearbit company results.")
         row = [
             (
                 refinery_id,
