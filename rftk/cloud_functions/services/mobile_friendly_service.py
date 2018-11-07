@@ -42,7 +42,7 @@ def check_mobile_friendly(request=None):
         except requests.exceptions.HTTPError as e:
             print("attempt {} failed.".format(i + 1))
             i += 1
-            resp = e.response.status_code + ": " + e
+            resp = str(e.response.status_code) + ": " + e
             continue
 
     resp_ = {
