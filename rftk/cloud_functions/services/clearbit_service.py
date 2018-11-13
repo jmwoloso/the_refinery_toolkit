@@ -306,8 +306,9 @@ def make_clearbit_person_gcs_payload(request=None):
     p["googleplus_handle"] = r["googleplus"]["handle"]
     p["gravatar_handle"] = r["gravatar"]["handle"]
     p["gravatar_url_titles"] = list()
-    p["gravatar_urls"] = list()
-    if len(r["gravatar"]["urls"]) != 0:
+    if r["gravatar"]["urls"] is None:
+        p["gravatar_urls"] = list()
+    else:
         for d in r["gravatar"]["urls"]:
             p["gravatar_url_titles"].append(d["value"])
             p["gravatar_urls"].append(d["title"])
