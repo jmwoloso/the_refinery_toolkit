@@ -213,7 +213,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     print("payload type: {}".format(payload_type))
 
     # get the static identifying properties
-    refinery_id = payload["refinery_id"]
+    refinery_company_id = payload["refinery_company_id"]
+    refinery_person_id = payload["refinery_person_id"]
     refined_at = payload["refined_at"]
     refined_date = payload["refined_date"]
     domain = payload["domain"]
@@ -226,7 +227,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             for theme in payload["wp_themes"]:
                 row = [
                     (
-                        refinery_id,
+                        refinery_company_id,
                         refined_at,
                         refined_date,
                         domain,
@@ -249,7 +250,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             for plugin in payload["wp_plugins"]:
                 row = [
                     (
-                        refinery_id,
+                        refinery_company_id,
                         refined_at,
                         refined_date,
                         domain,
@@ -273,7 +274,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             print("inserting tags.")
             row = [
                 (
-                    refinery_id,
+                    refinery_company_id,
                     refined_at,
                     refined_date,
                     domain,
@@ -296,7 +297,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             print("inserting tech.")
             row = [
                 (
-                    refinery_id,
+                    refinery_company_id,
                     refined_at,
                     refined_date,
                     domain,
@@ -318,7 +319,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
         print("inserting mobile test results.")
         row = [
             (
-                refinery_id,
+                refinery_company_id,
                 refined_at,
                 refined_date,
                 domain,
@@ -340,11 +341,13 @@ def insert_bq_row(dataset=None, table=None, schema=None,
         print("inserting crawler results.")
         row = [
             (
-                refinery_id,
+                refinery_company_id,
                 refined_at,
                 refined_date,
+                refinery_person_id,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
+                payload["sfdc_asset_id"],
                 domain,
                 url,
                 payload["all_links"],
@@ -376,11 +379,13 @@ def insert_bq_row(dataset=None, table=None, schema=None,
         print("inserting clearbit person results.")
         row = [
             (
-                refinery_id,
+                refinery_person_id,
                 refined_at,
                 refined_date,
+                refinery_company_id,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
+                payload["sfdc_asset_id"],
                 domain,
                 url,
                 payload["clearbit_person_id"],
@@ -449,11 +454,13 @@ def insert_bq_row(dataset=None, table=None, schema=None,
         print("inserting clearbit company results.")
         row = [
             (
-                refinery_id,
+                refinery_company_id,
                 refined_at,
                 refined_date,
+                refinery_person_id,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
+                payload["sfdc_asset_id"],
                 domain,
                 url,
                 payload["clearbit_company_id"],

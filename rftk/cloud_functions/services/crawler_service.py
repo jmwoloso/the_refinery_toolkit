@@ -297,11 +297,13 @@ def make_crawler_gcs_payload(request=None):
     else:
         p["meta_description"] = None
     # add the metadata we injected to the request along the way
-    p["refinery_id"] = r["refinery_id"]
+    p["refinery_company_id"] = r["refinery_company_id"]
+    p["refinery_person_id"] = r["refinery_person_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
     p["sfdc_lead_id"] = r["sfdc_lead_id"]
     p["sfdc_contact_id"] = r["sfdc_contact_id"]
+    p["sfdc_asset_id"] = r["sfdc_asset_id"]
     # TODO: should we keep all the content classifications if > 1 are
     # returned?
     max_class = None
@@ -368,11 +370,13 @@ def make_crawler_bq_payload(request=None):
     )
     p["meta_description"] = r["meta_description"]
     # add the metadata we injected to the request along the way
-    p["refinery_id"] = r["refinery_id"]
+    p["refinery_company_id"] = r["refinery_company_id"]
+    p["refinery_person_id"] = r["refinery_person_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
     p["sfdc_lead_id"] = r["sfdc_lead_id"]
     p["sfdc_contact_id"] = r["sfdc_contact_id"]
+    p["sfdc_asset_id"] = r["sfdc_asset_id"]
     p["classification_confidence"] = r["classification_confidence"]
     p["tier1_classification"] = \
         r["tier1_classification"]
@@ -392,7 +396,7 @@ def make_wp_payload(request=None):
     r = request.copy()
     p = MetadataMixin()
 
-    p["refinery_id"] = r["refinery_id"]
+    p["refinery_company_id"] = r["refinery_company_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]

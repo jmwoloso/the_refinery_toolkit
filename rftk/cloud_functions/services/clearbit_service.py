@@ -129,11 +129,13 @@ def make_clearbit_company_gcs_payload(request=None):
     p = MetadataMixin()
 
     # add the metadata we injected to the request along the way
-    p["refinery_id"] = request["refinery_id"]
+    p["refinery_company_id"] = request["refinery_company_id"]
+    p["refinery_person_id"] = request["refinery_person_id"]
     p["refined_at"] = request["refined_at"]
     p["refined_date"] = request["refined_date"]
     p["sfdc_lead_id"] = request["sfdc_lead_id"]
     p["sfdc_contact_id"] = request["sfdc_contact_id"]
+    p["sfdc_asset_id"] = request["sfdc_asset_id"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
 
@@ -244,11 +246,13 @@ def make_clearbit_person_gcs_payload(request=None):
     p = MetadataMixin()
 
     # add the metadata we injected to the request along the way
-    p["refinery_id"] = request["refinery_id"]
+    p["refinery_person_id"] = request["refinery_person_id"]
+    p["refinery_company_id"] = request["refinery_company_id"]
     p["refined_at"] = request["refined_at"]
     p["refined_date"] = request["refined_date"]
     p["sfdc_lead_id"] = request["sfdc_lead_id"]
     p["sfdc_contact_id"] = request["sfdc_contact_id"]
+    p["sfdc_asset_id"] = request["sfdc_asset_id"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
 
@@ -306,9 +310,8 @@ def make_clearbit_person_gcs_payload(request=None):
     p["googleplus_handle"] = r["googleplus"]["handle"]
     p["gravatar_handle"] = r["gravatar"]["handle"]
     p["gravatar_url_titles"] = list()
-    if r["gravatar"]["urls"] is None:
-        p["gravatar_urls"] = list()
-    else:
+    p["gravatar_urls"] = list()
+    if r["gravatar"]["urls"] is not None:
         for d in r["gravatar"]["urls"]:
             p["gravatar_url_titles"].append(d["value"])
             p["gravatar_urls"].append(d["title"])
@@ -345,7 +348,7 @@ def make_tags_payload(request=None):
     r = request.copy()
     p = MetadataMixin()
 
-    p["refinery_id"] = r["refinery_id"]
+    p["refinery_company_id"] = r["refinery_company_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
@@ -362,7 +365,7 @@ def make_tech_payload(request=None):
     r = request.copy()
     p = MetadataMixin()
 
-    p["refinery_id"] = r["refinery_id"]
+    p["refinery_company_id"] = r["refinery_company_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]

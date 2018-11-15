@@ -46,7 +46,7 @@ def check_mobile_friendly(request=None):
             continue
 
     resp_ = {
-        "refinery_id": request["refinery_id"],
+        "refinery_company_id": request["refinery_company_id"],
         "refined_at": request["refined_at"],
         "refined_date": request["refined_date"],
         "domain": request["domain"],

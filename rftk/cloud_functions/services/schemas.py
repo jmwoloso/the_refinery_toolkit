@@ -10,7 +10,7 @@ from google.cloud import bigquery as bq
 
 # mobile friendly test
 MOBILE_FRIENDLY_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -32,7 +32,7 @@ MOBILE_FRIENDLY_SCHEMA = [
 
 # clearbit tag history
 TAGS_HISTORY_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -54,7 +54,7 @@ TAGS_HISTORY_SCHEMA = [
 
 # clearbit tech history
 TECH_HISTORY_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -76,7 +76,7 @@ TECH_HISTORY_SCHEMA = [
 
 # crawler asset history
 CRAWLER_TECH_HISTORY_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -101,7 +101,7 @@ CRAWLER_TECH_HISTORY_SCHEMA = [
 
 # crawler payload
 CRAWLER_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -110,10 +110,16 @@ CRAWLER_SCHEMA = [
     bq.SchemaField(name="refined_date",
                    field_type="date",
                    mode="required"),
+    bq.SchemaField(name="refinery_person_id",
+                   field_type="string",
+                   mode="nullable"),
     bq.SchemaField(name="sfdc_lead_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="sfdc_contact_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_asset_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain",
@@ -165,7 +171,7 @@ CRAWLER_SCHEMA = [
 
 # clearbit person
 CLEARBIT_PERSON_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_person_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -174,10 +180,16 @@ CLEARBIT_PERSON_SCHEMA = [
     bq.SchemaField(name="refined_date",
                    field_type="date",
                    mode="required"),
+    bq.SchemaField(name="refinery_company_id",
+                   field_type="string",
+                   mode="nullable"),
     bq.SchemaField(name="sfdc_lead_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="sfdc_contact_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_asset_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain",
@@ -337,7 +349,7 @@ CLEARBIT_PERSON_SCHEMA = [
 
 # clearbit company
 CLEARBIT_COMPANY_SCHEMA = [
-    bq.SchemaField(name="refinery_id",
+    bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="refined_at",
@@ -346,10 +358,16 @@ CLEARBIT_COMPANY_SCHEMA = [
     bq.SchemaField(name="refined_date",
                    field_type="date",
                    mode="required"),
+    bq.SchemaField(name="refinery_person_id",
+                   field_type="string",
+                   mode="nullable"),
     bq.SchemaField(name="sfdc_lead_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="sfdc_contact_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_asset_id",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain",
