@@ -2,7 +2,7 @@
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
 
-__version__ = "0.4.8"
+__version__ = "0.4.17"
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
@@ -19,6 +19,13 @@ from .schemas import MOBILE_FRIENDLY_SCHEMA, \
 
 from .constants import MAX_RETRIES
 
+from .deployment import CLEARBIT_TECH_BQ_CONFIGS, \
+    CLEARBIT_TAGS_BQ_CONFIGS, CLEARBIT_PERSON_CONFIGS, \
+    CLEARBIT_COMPANY_CONFIGS, CLEARBIT_CONFIGS, \
+    CRAWLER_TECH_BQ_CONFIGS, CRAWLER_CONFIGS, \
+    CRAWLER_DOMAIN_BQ_CONFIGS, ENDPOINT_CONFIGS, MOBILE_TO_BQ_CONFIGS, \
+    MOBILE_CONFIGS
+
 # TODO: should follow the same versioning cadence as the_refinery
 __all__ = [
     "get_valid_url",
@@ -32,5 +39,16 @@ __all__ = [
     "CLEARBIT_COMPANY_SCHEMA",
     "CLEARBIT_PERSON_SCHEMA",
     "MetadataMixin",
-    "MAX_RETRIES"
+    "MAX_RETRIES",
+    "CLEARBIT_CONFIGS",
+    "CLEARBIT_COMPANY_CONFIGS",
+    "CLEARBIT_PERSON_CONFIGS",
+    "CLEARBIT_TAGS_BQ_CONFIGS",
+    "CLEARBIT_TECH_BQ_CONFIGS",
+    "CRAWLER_DOMAIN_BQ_CONFIGS",
+    "CRAWLER_CONFIGS",
+    "CRAWLER_TECH_BQ_CONFIGS",
+    "MOBILE_CONFIGS",
+    "MOBILE_TO_BQ_CONFIGS",
+    "ENDPOINT_CONFIGS"
 ]

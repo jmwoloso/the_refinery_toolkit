@@ -138,6 +138,8 @@ def make_clearbit_company_gcs_payload(request=None):
     p["sfdc_asset_id"] = request["sfdc_asset_id"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
+    p["ip_revealed"] = request["ip_revealed"]
+    p["fuzzy_match"] = request["fuzzy_match"]
 
     # add the company data returned by clearbit
     p["clearbit_company_id"] = r["id"]
@@ -255,6 +257,7 @@ def make_clearbit_person_gcs_payload(request=None):
     p["sfdc_asset_id"] = request["sfdc_asset_id"]
     p["url"] = request["url"]
     p["domain"] = request["domain"]
+    p["ip_revealed"] = request["ip_revealed"]
 
     p["clearbit_person_id"] = r["id"]
     p["clearbit_indexed_at"] = r["indexedAt"]
@@ -353,6 +356,8 @@ def make_tags_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
     p["url"] = r["url"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
     p["tags"] = r["company"]["tags"]
     return p
 
@@ -370,5 +375,7 @@ def make_tech_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
     p["url"] = r["url"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
     p["tech"] = r["company"]["tech"]
     return p

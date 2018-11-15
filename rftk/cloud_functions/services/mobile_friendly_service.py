@@ -42,7 +42,7 @@ def check_mobile_friendly(request=None):
         except requests.exceptions.HTTPError as e:
             print("attempt {} failed.".format(i + 1))
             i += 1
-            resp = str(e.response.status_code) + ": " + e
+            resp = str(e.response.status_code)
             continue
 
     resp_ = {
@@ -50,7 +50,9 @@ def check_mobile_friendly(request=None):
         "refined_at": request["refined_at"],
         "refined_date": request["refined_date"],
         "domain": request["domain"],
-        "url": request["url"]
+        "url": request["url"],
+        "ip_revealed": request["ip_revealed"],
+        "fuzzy_match": request["fuzzy_match"]
     }
 
     # we never were able to successfully test the url

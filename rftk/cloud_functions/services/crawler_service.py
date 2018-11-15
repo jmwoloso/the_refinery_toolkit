@@ -292,6 +292,8 @@ def make_crawler_gcs_payload(request=None):
     p["href_phones"] = r["href_phones"]
     p["href_socials"] = r["href_socials"]
     p["meta_keywords"] = r["meta_keywords"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
     if len(r["meta_description"]) != 0:
         p["meta_description"] = r["meta_description"].replace("\r", "")
     else:
@@ -347,6 +349,8 @@ def make_crawler_bq_payload(request=None):
     p["domain"] = r["domain"]
     p["url"] = r["url"]
     p["html_string"] = r["html_string"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
     p["all_links"] = " >>> ".join(
         r["all_links"]
     )
@@ -401,6 +405,8 @@ def make_wp_payload(request=None):
     p["refined_date"] = r["refined_date"]
     p["domain"] = r["domain"]
     p["url"] = r["url"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
     if len(r["wp_themes"]) != 0:
         p["wp_themes"] = r["wp_themes"]
     if len(r["wp_plugins"]) != 0:

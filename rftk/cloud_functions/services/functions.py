@@ -214,7 +214,12 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
     # get the static identifying properties
     refinery_company_id = payload["refinery_company_id"]
-    refinery_person_id = payload["refinery_person_id"]
+
+    try:
+        # this may not be present depending on the payload
+        refinery_person_id = payload["refinery_person_id"]
+    except KeyError as e:
+        pass
     refined_at = payload["refined_at"]
     refined_date = payload["refined_date"]
     domain = payload["domain"]
@@ -232,6 +237,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                         refined_date,
                         domain,
                         url,
+                        payload["ip_revealed"],
+                        payload["fuzzy_match"],
                         theme,
                         "theme"
                     )
@@ -255,6 +262,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                         refined_date,
                         domain,
                         url,
+                        payload["ip_revealed"],
+                        payload["fuzzy_match"],
                         plugin,
                         "plugin"
                     )
@@ -279,6 +288,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     refined_date,
                     domain,
                     url,
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
                     tag
                 )
             ]
@@ -302,6 +313,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     refined_date,
                     domain,
                     url,
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
                     tech
                 )
             ]
@@ -324,6 +337,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 refined_date,
                 domain,
                 url,
+                payload["ip_revealed"],
+                payload["fuzzy_match"],
                 payload["test_results"]
             )
         ]
@@ -350,6 +365,8 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["sfdc_asset_id"],
                 domain,
                 url,
+                payload["ip_revealed"],
+                payload["fuzzy_match"],
                 payload["all_links"],
                 payload["internal_links"],
                 payload["external_links"],
@@ -388,6 +405,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["sfdc_asset_id"],
                 domain,
                 url,
+                payload["ip_revealed"],
                 payload["clearbit_person_id"],
                 payload["clearbit_indexed_at"],
                 payload["full_name"],
@@ -463,6 +481,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["sfdc_asset_id"],
                 domain,
                 url,
+                payload["ip_revealed"],
                 payload["clearbit_company_id"],
                 payload["clearbit_indexed_at"],
                 payload["company_name"],
@@ -520,6 +539,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["twitter_id"],
                 payload["twitter_location"],
                 payload["twitter_site_url"],
+                payload["fuzzy_match"],
                 payload["is_email_provider"]
 
             )
