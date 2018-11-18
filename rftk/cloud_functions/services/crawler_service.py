@@ -396,7 +396,7 @@ def make_crawler_bq_payload(request=None):
 def make_crawler_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
-    print("make_wp_payload()")
+    print("make_crawler_tech_payload()")
     r = request.copy()
     p = MetadataMixin()
 

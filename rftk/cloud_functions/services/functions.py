@@ -52,8 +52,8 @@ def callback(future):
     print("message_id: {} received.".format(message_id))
 
 
-def publish_to_endpoint(messages=None, max_bytes=None,
-                        max_latency=None, max_messages=None):
+def publish_to_endpoint(messages=None, max_bytes=10000000,
+                        max_latency=0.05, max_messages=1000):
     print("publish_to_endpoint()")
     # apply the batch settings if specified
     batch_settings = pubsub.types.BatchSettings(
