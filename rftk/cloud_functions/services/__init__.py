@@ -2,7 +2,7 @@
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
 
-__version__ = "0.4.17"
+__version__ = "0.4.30"
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
@@ -15,7 +15,8 @@ from .functions import get_service_params, get_valid_url, \
 from .schemas import MOBILE_FRIENDLY_SCHEMA, \
     CRAWLER_TECH_HISTORY_SCHEMA, TAGS_HISTORY_SCHEMA, \
     TECH_HISTORY_SCHEMA, CRAWLER_SCHEMA, CLEARBIT_PERSON_SCHEMA, \
-    CLEARBIT_COMPANY_SCHEMA
+    CLEARBIT_COMPANY_SCHEMA, WP_PLUGIN_LOOKUP_SCHEMA, \
+    WP_PLUGIN_LOOKUP_ERROR_SCHEMA, EMAIL_PROVIDER_SCHEMA
 
 from .constants import MAX_RETRIES
 
@@ -24,7 +25,11 @@ from .deployment import CLEARBIT_TECH_BQ_CONFIGS, \
     CLEARBIT_COMPANY_CONFIGS, CLEARBIT_CONFIGS, \
     CRAWLER_TECH_BQ_CONFIGS, CRAWLER_CONFIGS, \
     CRAWLER_DOMAIN_BQ_CONFIGS, ENDPOINT_CONFIGS, MOBILE_TO_BQ_CONFIGS, \
-    MOBILE_CONFIGS
+    MOBILE_CONFIGS, WP_PLUGIN_LOOKUP_CONFIGS
+
+from .wordpress import get_wp_plugin_info_online
+
+from .email_provider import get_email_provider
 
 # TODO: should follow the same versioning cadence as the_refinery
 __all__ = [
@@ -38,6 +43,9 @@ __all__ = [
     "CRAWLER_SCHEMA",
     "CLEARBIT_COMPANY_SCHEMA",
     "CLEARBIT_PERSON_SCHEMA",
+    "WP_PLUGIN_LOOKUP_SCHEMA",
+    "WP_PLUGIN_LOOKUP_ERROR_SCHEMA",
+    "EMAIL_PROVIDER_SCHEMA",
     "MetadataMixin",
     "MAX_RETRIES",
     "CLEARBIT_CONFIGS",
@@ -50,5 +58,8 @@ __all__ = [
     "CRAWLER_TECH_BQ_CONFIGS",
     "MOBILE_CONFIGS",
     "MOBILE_TO_BQ_CONFIGS",
-    "ENDPOINT_CONFIGS"
+    "ENDPOINT_CONFIGS",
+    "WP_PLUGIN_LOOKUP_CONFIGS",
+    "get_wp_plugin_info_online",
+    "get_email_provider"
 ]

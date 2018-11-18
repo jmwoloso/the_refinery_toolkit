@@ -140,6 +140,7 @@ def make_clearbit_company_gcs_payload(request=None):
     p["domain"] = request["domain"]
     p["ip_revealed"] = request["ip_revealed"]
     p["fuzzy_match"] = request["fuzzy_match"]
+    p["ip_address"] = request["ip"]
 
     # add the company data returned by clearbit
     p["clearbit_company_id"] = r["id"]
@@ -344,10 +345,11 @@ def make_clearbit_person_gcs_payload(request=None):
 
 
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
-def make_tags_payload(request=None):
+def make_clearbit_tags_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
-    print("make_tags_payload()")
+    print("make_clearbit_tags_payload()")
+    print("request: {}".format(request))
     r = request.copy()
     p = MetadataMixin()
 
@@ -363,10 +365,11 @@ def make_tags_payload(request=None):
 
 
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
-def make_tech_payload(request=None):
+def make_clearbit_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
-    print("make_tech_payload()")
+    print("make_clearbit_tech_payload()")
+    print("request: {}".format(request))
     r = request.copy()
     p = MetadataMixin()
 

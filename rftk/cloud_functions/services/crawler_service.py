@@ -393,7 +393,7 @@ def make_crawler_bq_payload(request=None):
 
 
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
-def make_wp_payload(request=None):
+def make_crawler_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
     print("make_wp_payload()")
@@ -413,3 +413,5 @@ def make_wp_payload(request=None):
         p["wp_plugins"] = r["wp_plugins"]
     print("payload: {}".format(p))
     return p
+
+

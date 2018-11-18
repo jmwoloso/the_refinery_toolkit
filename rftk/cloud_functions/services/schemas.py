@@ -409,6 +409,9 @@ CLEARBIT_COMPANY_SCHEMA = [
     bq.SchemaField(name="url",
                    field_type="string",
                    mode="required"),
+    bq.SchemaField(name="ip_address",
+                   field_type="string",
+                   mode="nullable"),
     bq.SchemaField(name="ip_revealed",
                    field_type="boolean",
                    mode="required"),
@@ -589,4 +592,64 @@ CLEARBIT_COMPANY_SCHEMA = [
     bq.SchemaField(name="is_email_provider",
                    field_type="boolean",
                    mode="nullable"),
+]
+
+
+# wp lookup table schema
+WP_PLUGIN_LOOKUP_SCHEMA = [
+    bq.SchemaField(name="plugin",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="name",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="tag",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="description",
+                   field_type="string",
+                   mode="nullable")
+]
+
+
+# wp lookup table error schema
+WP_PLUGIN_LOOKUP_ERROR_SCHEMA = [
+    bq.SchemaField(name="plugin",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required")
+]
+
+
+# email provider lookup table schema
+EMAIL_PROVIDER_SCHEMA = [
+    bq.SchemaField(name="refinery_company_id",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="domain",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="mx_record",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="email_provider",
+                   field_type="string",
+                   mode="required")
 ]

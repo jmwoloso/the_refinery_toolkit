@@ -12,7 +12,7 @@ ENDPOINT_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery",
@@ -26,7 +26,7 @@ CLEARBIT_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_clearbit_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_clearbit_service",
@@ -40,7 +40,7 @@ CRAWLER_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_crawler_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_crawler_service",
@@ -68,7 +68,7 @@ CLEARBIT_COMPANY_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_clearbit_company_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_clearbit_company_to_bq_service",
@@ -83,7 +83,7 @@ CLEARBIT_PERSON_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_clearbit_person_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_clearbit_person_to_bq_service",
@@ -98,7 +98,7 @@ CRAWLER_DOMAIN_BQ_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_crawler_domain_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_crawler_domain_to_bq_service",
@@ -113,7 +113,7 @@ MOBILE_TO_BQ_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_mobile_friendly_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_mobile_friendly_to_bq_service",
@@ -128,7 +128,7 @@ CLEARBIT_TAGS_BQ_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_clearbit_tags_history_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_clearbit_tags_history_to_bq_service",
@@ -143,7 +143,7 @@ CLEARBIT_TECH_BQ_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_clearbit_tech_history_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_clearbit_tech_history_to_bq_service",
@@ -158,11 +158,41 @@ CRAWLER_TECH_BQ_CONFIGS = {
     "full_name": "projects/infusionsoft-looker-poc/locations/uc"
                  "-central1/functions/the_refinery_crawler_tech_history_to_bq_service",
     "region": "us-central1",
-    "timeout": "60s",
+    "timeout": "540s",
     "memory": "128MB",
     "runtime": "python37",
     "trigger": "the_refinery_crawler_tech_history_to_bq_service",
     "entry_point": "run_crawler_tech_history_to_bq_service",
     "source": "/cloud_functions/services"
               "/crawler_tech_history_to_bq_service/",
+}
+
+
+WP_PLUGIN_LOOKUP_CONFIGS = {
+    "name": "the_refinery_wordpress_plugin_lookup_service",
+    "full_name": "projects/infusionsoft-looker-poc/locations/uc"
+                 "-central1/functions/the_refinery_wordpress_plugin_lookup_service",
+    "region": "us-central1",
+    "timeout": "540s",
+    "memory": "128MB",
+    "runtime": "python37",
+    "trigger": "the_refinery_wordpress_plugin_lookup_service",
+    "entry_point": "run_wordpress_plugin_lookup_service",
+    "source": "/cloud_functions/services"
+              "/wordpress_plugin_lookup_service/",
+}
+
+
+EMAIL_PROVIDER_LOOKUP_CONFIGS = {
+    "name": "the_refinery_email_provider_lookup_service",
+    "full_name": "projects/infusionsoft-looker-poc/locations/uc"
+                 "-central1/functions/the_refinery_email_provider_lookup_service",
+    "region": "us-central1",
+    "timeout": "60s",
+    "memory": "128MB",
+    "runtime": "python37",
+    "trigger": "the_refinery_email_provider_lookup_service",
+    "entry_point": "run_email_provider_lookup_service",
+    "source": "/cloud_functions/services"
+              "/email_provider_lookup_service/",
 }

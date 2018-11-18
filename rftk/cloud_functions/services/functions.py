@@ -43,23 +43,63 @@ def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
     print(err)
 
 
-def publish_to_endpoint(topic, message):
+def callback(future):
+    """Callback function to ensure the future has completed."""
+    message_id = future.result()
+    print("message_id: {} received.".format(message_id))
+
+
+def publish_to_endpoint(messages=None, max_bytes=None,
+                        max_latency=None, max_messages=None):
     print("publish_to_endpoint()")
-    pubsub_client = pubsub.PublisherClient()
+    # apply the batch settings if specified
+    batch_settings = pubsub.types.BatchSettings(
+        max_bytes=max_bytes,
+        max_latency=max_latency,
+        max_messages=max_messages
+    )
+    pubsub_client = pubsub.PublisherClient(
+        batch_settings=batch_settings
+    )
     # TODO: find a universal way to encode the message so we don't
     #  have to write different decoding functions in the_refinery to
     #  deal with different publishers; this produces a dict,
     #  but product and marketing will be delivering different payloads
-    byte_encoded_message = str.encode(
-        json.dumps(
-            message
+    for message in messages:
+        byte_encoded_message = str.encode(
+            json.dumps(
+                message
+            )
         )
-    )
-    print("topic: {}".format(topic))
-    topic = pubsub_client.topic_path("infusionsoft-looker-poc",
-                                     topic)
-    resp = pubsub_client.publish(topic,
-                                 byte_encoded_message)
+        print("topic: {}".format(message["topic"]))
+        topic = pubsub_client.topic_path("infusionsoft-looker-poc",
+                                         message["topic"])
+        future = pubsub_client.publish(topic,
+                                       byte_encoded_message)
+
+        # attach the callback
+        future.add_done_callback(callback)
+
+
+# def publish_to_endpoint(topic=None, message=None):
+#     print("publish_to_endpoint()")
+#     pubsub_client = pubsub.PublisherClient()
+#     # TODO: find a universal way to encode the message so we don't
+#     #  have to write different decoding functions in the_refinery to
+#     #  deal with different publishers; this produces a dict,
+#     #  but product and marketing will be delivering different payloads
+#     byte_encoded_message = str.encode(
+#         json.dumps(
+#             message
+#         )
+#     )
+#     print("topic: {}".format(topic))
+#     topic = pubsub_client.topic_path("infusionsoft-looker-poc",
+#                                      topic)
+#     resp = pubsub_client.publish(topic,
+#                                  byte_encoded_message)
+#
+#     return resp.future()
 
 
 def decode_event(event):
@@ -212,18 +252,20 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     print("payload: {}".format(payload))
     print("payload type: {}".format(payload_type))
 
-    # get the static identifying properties
-    refinery_company_id = payload["refinery_company_id"]
-
     try:
         # this may not be present depending on the payload
         refinery_person_id = payload["refinery_person_id"]
     except KeyError as e:
         pass
+
     refined_at = payload["refined_at"]
     refined_date = payload["refined_date"]
-    domain = payload["domain"]
-    url = payload["url"]
+
+    # these two payloads do not use the statics
+    if payload_type not in ["wp_lookup", "wp_lookup_error"]:
+        domain = payload["domain"]
+        url = payload["url"]
+        refinery_company_id = payload["refinery_company_id"]
 
     if payload_type == "crawler_tech":
         keys = payload.keys()
@@ -481,6 +523,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 payload["sfdc_asset_id"],
                 domain,
                 url,
+                payload["ip_address"],
                 payload["ip_revealed"],
                 payload["clearbit_company_id"],
                 payload["clearbit_indexed_at"],
@@ -553,3 +596,72 @@ def insert_bq_row(dataset=None, table=None, schema=None,
 
         if len(errors) != 0:
             print(errors)
+
+    if payload_type == "wp_lookup":
+        print("updating wp plugin lookup table.")
+        plugin = payload["plugin"]
+        name = payload["name"]
+        desc = payload["description"]
+        for tag in payload["tags"]:
+            row = [
+                (
+                    plugin,
+                    refined_at,
+                    refined_date,
+                    name,
+                    tag,
+                    desc
+                )
+            ]
+
+            errors = client.insert_rows(
+                table,
+                row,
+                selected_fields=schema
+            )
+
+            if len(errors) != 0:
+                print(errors)
+
+    if payload_type == "wp_lookup_error":
+        print("updating wp plugin error table.")
+        row = [
+            (
+                payload["plugin"],
+                refined_at,
+                refined_date
+            )
+        ]
+
+        errors = client.insert_rows(
+            table,
+            row,
+            selected_fields=schema
+        )
+
+        if len(errors) != 0:
+            print(errors)
+
+    if payload_type == "email_provider":
+        print("inserting email provider lookup results.")
+        for email_provider, mx_record in zip(
+                payload["email_providers"], payload["mx_records"]):
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    mx_record,
+                    email_provider
+                )
+            ]
+
+            errors = client.insert_rows(
+                table,
+                row,
+                selected_fields=schema
+            )
+
+            if len(errors) != 0:
+                print(errors)
