@@ -6,6 +6,7 @@ functions.py: Utility functions used throughout the services within the
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
+import time
 import base64
 import json
 import requests
@@ -19,28 +20,30 @@ def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
                   file_suffix=None):
     """Utility function to upload the json to GCS."""
     print("upload_to_gcs()")
-    client = storage.Client()
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_name + file_suffix)
+    i = 0
+    while i < 7:
+        try:
+            client = storage.Client()
+            bucket = client.get_bucket(bucket_name)
+            blob = bucket.blob(file_name + file_suffix)
+            blob.upload_from_string(
+                json.dumps(
+                    payload
+                ),
+                content_type="application/json"
+            )
+            print("payload: {}".format(payload))
+            break
 
-    try:
-        blob.upload_from_string(
-            json.dumps(
-                payload
-            ),
-            content_type="application/json"
-        )
-        print("payload: {}".format(payload))
-        return payload
-
-    # TODO: what should we do here?
-    except Exception as e:
-        err = {
-            "error_message": e,
-            "status_code": "unknown"
-        }
-
-    print(err)
+        # TODO: what should we do here?
+        except Exception as e:
+            i += 1
+            err = {
+                "error_message": e,
+                "status_code": "error uploading to gcs."
+            }
+            print(err)
+            continue
 
 
 def callback(future):
@@ -232,40 +235,6 @@ def insert_bq_row(dataset=None, table=None, schema=None,
     """Utility function for inserting json rows into the specified
     table."""
     print("insert_bq_row()")
-    # configs for bq
-    client = bq.Client()
-    job_config = bq.LoadJobConfig()
-    job_config.schema = schema
-    job_config.source_format = \
-        bq.job.SourceFormat.NEWLINE_DELIMITED_JSON
-    job_config.write_disposition = bq.job.WriteDisposition.WRITE_APPEND
-
-    dataset_ref = client.dataset(dataset)
-    dataset = bq.Dataset(dataset_ref)
-    table_ref = dataset.table(table)
-    table = bq.Table(table_ref,
-                     schema=schema)
-
-    print("dataset: {}".format(dataset))
-    print("table: {}".format(table))
-    print("schema: {}".format(schema))
-    print("payload: {}".format(payload))
-    print("payload type: {}".format(payload_type))
-
-    try:
-        # this may not be present depending on the payload
-        refinery_person_id = payload["refinery_person_id"]
-    except KeyError as e:
-        pass
-
-    refined_at = payload["refined_at"]
-    refined_date = payload["refined_date"]
-
-    # these two payloads do not use the statics
-    if payload_type not in ["wp_lookup", "wp_lookup_error"]:
-        domain = payload["domain"]
-        url = payload["url"]
-        refinery_company_id = payload["refinery_company_id"]
 
     if payload_type == "crawler_tech":
         keys = payload.keys()
@@ -274,139 +243,97 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             for theme in payload["wp_themes"]:
                 row = [
                     (
-                        refinery_company_id,
-                        refined_at,
-                        refined_date,
-                        domain,
-                        url,
+                        payload["refinery_company_id"],
+                        payload["refined_at"],
+                        payload["refined_date"],
+                        payload["domain"],
+                        payload["url"],
                         payload["ip_revealed"],
                         payload["fuzzy_match"],
                         theme,
-                        "theme"
+                        "theme",
+                        "wordpress"
                     )
                 ]
-
-                errors = client.insert_rows(
-                    table,
-                    row,
-                    selected_fields=schema
-                )
-                if len(errors) != 0:
-                    print(errors)
 
         if "wp_plugins" in keys:
             print("inserting plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
                     (
-                        refinery_company_id,
-                        refined_at,
-                        refined_date,
-                        domain,
-                        url,
+                        payload["refinery_company_id"],
+                        payload["refined_at"],
+                        payload["refined_date"],
+                        payload["domain"],
+                        payload["url"],
                         payload["ip_revealed"],
                         payload["fuzzy_match"],
                         plugin,
-                        "plugin"
+                        "plugin",
+                        "wordpress"
                     )
                 ]
-
-                errors = client.insert_rows(
-                    table,
-                    row,
-                    selected_fields=schema
-                )
-
-                if len(errors) != 0:
-                    print(errors)
 
     if payload_type == "tags":
         for tag in payload["tags"]:
             print("inserting tags.")
             row = [
                 (
-                    refinery_company_id,
-                    refined_at,
-                    refined_date,
-                    domain,
-                    url,
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
                     payload["ip_revealed"],
                     payload["fuzzy_match"],
                     tag
                 )
             ]
 
-            errors = client.insert_rows(
-                table,
-                row,
-                selected_fields=schema
-            )
-
-            if len(errors) != 0:
-                print(errors)
-
     if payload_type == "tech":
         for tech in payload["tech"]:
             print("inserting tech.")
             row = [
                 (
-                    refinery_company_id,
-                    refined_at,
-                    refined_date,
-                    domain,
-                    url,
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
                     payload["ip_revealed"],
                     payload["fuzzy_match"],
                     tech
                 )
             ]
 
-            errors = client.insert_rows(
-                table,
-                row,
-                selected_fields=schema
-            )
-
-            if len(errors) != 0:
-                print(errors)
-
     if payload_type == "mobile":
         print("inserting mobile test results.")
         row = [
             (
-                refinery_company_id,
-                refined_at,
-                refined_date,
-                domain,
-                url,
+                payload["refinery_company_id"],
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["domain"],
+                payload["url"],
                 payload["ip_revealed"],
                 payload["fuzzy_match"],
                 payload["test_results"]
             )
         ]
 
-        errors = client.insert_rows(
-            table,
-            row,
-            selected_fields=schema
-        )
-
-        if len(errors) != 0:
-            print(errors)
-
     if payload_type == "crawler":
         print("inserting crawler results.")
         row = [
             (
-                refinery_company_id,
-                refined_at,
-                refined_date,
-                refinery_person_id,
+                payload["refinery_company_id"],
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["refinery_person_id"],
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
-                domain,
-                url,
+                payload["domain"],
+                payload["url"],
                 payload["ip_revealed"],
                 payload["fuzzy_match"],
                 payload["all_links"],
@@ -425,28 +352,19 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             )
         ]
 
-        errors = client.insert_rows(
-            table,
-            row,
-            selected_fields=schema
-        )
-
-        if len(errors) != 0:
-            print(errors)
-
     if payload_type == "person":
         print("inserting clearbit person results.")
         row = [
             (
-                refinery_person_id,
-                refined_at,
-                refined_date,
-                refinery_company_id,
+                payload["refinery_person_id"],
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["refinery_company_id"],
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
-                domain,
-                url,
+                payload["domain"],
+                payload["url"],
                 payload["ip_revealed"],
                 payload["clearbit_person_id"],
                 payload["clearbit_indexed_at"],
@@ -501,28 +419,19 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             )
         ]
 
-        errors = client.insert_rows(
-            table,
-            row,
-            selected_fields=schema
-        )
-
-        if len(errors) != 0:
-            print(errors)
-
     if payload_type == "company":
         print("inserting clearbit company results.")
         row = [
             (
-                refinery_company_id,
-                refined_at,
-                refined_date,
-                refinery_person_id,
+                payload["refinery_company_id"],
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["refinery_person_id"],
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
-                domain,
-                url,
+                payload["domain"],
+                payload["url"],
                 payload["ip_address"],
                 payload["ip_revealed"],
                 payload["clearbit_company_id"],
@@ -588,59 +497,29 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             )
         ]
 
-        errors = client.insert_rows(
-            table,
-            row,
-            selected_fields=schema
-        )
-
-        if len(errors) != 0:
-            print(errors)
-
     if payload_type == "wp_lookup":
         print("updating wp plugin lookup table.")
-        plugin = payload["plugin"]
-        name = payload["name"]
-        desc = payload["description"]
         for tag in payload["tags"]:
             row = [
                 (
-                    plugin,
-                    refined_at,
-                    refined_date,
-                    name,
+                    payload["plugin"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["name"],
                     tag,
-                    desc
+                    payload["description"]
                 )
             ]
-
-            errors = client.insert_rows(
-                table,
-                row,
-                selected_fields=schema
-            )
-
-            if len(errors) != 0:
-                print(errors)
 
     if payload_type == "wp_lookup_error":
         print("updating wp plugin error table.")
         row = [
             (
                 payload["plugin"],
-                refined_at,
-                refined_date
+                payload["refined_at"],
+                payload["refined_date"]
             )
         ]
-
-        errors = client.insert_rows(
-            table,
-            row,
-            selected_fields=schema
-        )
-
-        if len(errors) != 0:
-            print(errors)
 
     if payload_type == "email_provider":
         print("inserting email provider lookup results.")
@@ -657,6 +536,31 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 )
             ]
 
+    max_retries = 7
+    for n in range(max_retries):
+        try:
+            # configs for bq
+            client = bq.Client()
+            job_config = bq.LoadJobConfig()
+            job_config.schema = schema
+            job_config.source_format = \
+                bq.job.SourceFormat.NEWLINE_DELIMITED_JSON
+            job_config.write_disposition = \
+                bq.job.WriteDisposition.WRITE_APPEND
+
+            dataset_ref = client.dataset(dataset)
+            dataset = bq.Dataset(dataset_ref)
+            table_ref = dataset.table(table)
+            table = bq.Table(table_ref,
+                             schema=schema)
+
+            print("dataset: {}".format(dataset))
+            print("table: {}".format(table))
+            print("schema: {}".format(schema))
+            print("payload: {}".format(payload))
+            print("payload type: {}".format(payload_type))
+
+            # attempt to insert the record
             errors = client.insert_rows(
                 table,
                 row,
@@ -664,4 +568,13 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             )
 
             if len(errors) != 0:
+                i = 0
                 print(errors)
+        except Exception:
+            if n == max_retries - 1:
+                raise Exception
+            time.sleep(2 ** n)
+
+
+
+
