@@ -92,7 +92,7 @@ TECH_HISTORY_SCHEMA = [
                    mode="required")
 ]
 
-# crawler asset history
+# crawler tech history
 CRAWLER_TECH_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
@@ -120,7 +120,10 @@ CRAWLER_TECH_HISTORY_SCHEMA = [
                    mode="required"),
     bq.SchemaField(name="type",
                    field_type="string",
-                   mode="required")
+                   mode="required"),
+    bq.SchemaField(name="provider",
+                   field_type="string",
+                   mode="nullable")
 ]
 
 # crawler payload
