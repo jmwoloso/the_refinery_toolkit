@@ -37,7 +37,7 @@ MOBILE_FRIENDLY_SCHEMA = [
 ]
 
 # clearbit tag history
-TAGS_HISTORY_SCHEMA = [
+CLEARBIT_TAGS_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
@@ -65,7 +65,7 @@ TAGS_HISTORY_SCHEMA = [
 ]
 
 # clearbit tech history
-TECH_HISTORY_SCHEMA = [
+CLEARBIT_TECH_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
@@ -88,6 +88,64 @@ TECH_HISTORY_SCHEMA = [
                    field_type="boolean",
                    mode="nullable"),
     bq.SchemaField(name="tech",
+                   field_type="string",
+                   mode="required")
+]
+
+
+# clearbit tech history
+CLEARBIT_EMAILS_HISTORY_SCHEMA = [
+    bq.SchemaField(name="refinery_company_id",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="domain",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="url",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="ip_revealed",
+                   field_type="boolean",
+                   mode="required"),
+    bq.SchemaField(name="fuzzy_match",
+                   field_type="boolean",
+                   mode="nullable"),
+    bq.SchemaField(name="email",
+                   field_type="string",
+                   mode="required")
+]
+
+
+# clearbit tech history
+CLEARBIT_PHONES_HISTORY_SCHEMA = [
+    bq.SchemaField(name="refinery_company_id",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="domain",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="url",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="ip_revealed",
+                   field_type="boolean",
+                   mode="required"),
+    bq.SchemaField(name="fuzzy_match",
+                   field_type="boolean",
+                   mode="nullable"),
+    bq.SchemaField(name="phone",
                    field_type="string",
                    mode="required")
 ]
@@ -127,7 +185,7 @@ CRAWLER_TECH_HISTORY_SCHEMA = [
 ]
 
 # crawler payload
-CRAWLER_SCHEMA = [
+CRAWLER_DOMAIN_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
@@ -434,12 +492,6 @@ CLEARBIT_COMPANY_SCHEMA = [
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain_aliases",
-                   field_type="string",
-                   mode="nullable"),
-    bq.SchemaField(name="phone_numbers",
-                   field_type="string",
-                   mode="nullable"),
-    bq.SchemaField(name="email_addresses",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="industry",

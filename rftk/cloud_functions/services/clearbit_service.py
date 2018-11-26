@@ -151,14 +151,6 @@ def make_clearbit_company_gcs_payload(request=None):
         r["domainAliases"]
     )
 
-    # site
-    p["phone_numbers"] = " >>> ".join(
-        r["site"]["phoneNumbers"]
-    )
-    p["email_addresses"] = " >>> ".join(
-        r["site"]["emailAddresses"]
-    )
-
     # category
     p["industry"] = r["category"]["industry"]
     p["industry_group"] = r["category"]["industryGroup"]
@@ -381,4 +373,44 @@ def make_clearbit_tech_payload(request=None):
     p["ip_revealed"] = r["ip_revealed"]
     p["fuzzy_match"] = r["fuzzy_match"]
     p["tech"] = r["company"]["tech"]
+    return p
+
+
+# TODO: can we abstract this to fit all cases (tags, tech, wp)
+def make_clearbit_emails_payload(request=None):
+    """Utility function that creates a payload for the Wordpress
+    bucket."""
+    print("make_clearbit_emails_payload()")
+    print("request: {}".format(request))
+    r = request.copy()
+    p = MetadataMixin()
+
+    p["refinery_company_id"] = r["refinery_company_id"]
+    p["refined_at"] = r["refined_at"]
+    p["refined_date"] = r["refined_date"]
+    p["domain"] = r["domain"]
+    p["url"] = r["url"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
+    p["emails"] = r["company"]["site"]["emailAddresses"]
+    return p
+
+
+# TODO: can we abstract this to fit all cases (tags, tech, wp)
+def make_clearbit_phones_payload(request=None):
+    """Utility function that creates a payload for the Wordpress
+    bucket."""
+    print("make_clearbit_phones_payload()")
+    print("request: {}".format(request))
+    r = request.copy()
+    p = MetadataMixin()
+
+    p["refinery_company_id"] = r["refinery_company_id"]
+    p["refined_at"] = r["refined_at"]
+    p["refined_date"] = r["refined_date"]
+    p["domain"] = r["domain"]
+    p["url"] = r["url"]
+    p["ip_revealed"] = r["ip_revealed"]
+    p["fuzzy_match"] = r["fuzzy_match"]
+    p["phones"] = r["company"]["site"]["phoneNumbers"]
     return p

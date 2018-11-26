@@ -2,7 +2,7 @@
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
 
-__version__ = "0.4.34"
+__version__ = "0.4.39"
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
@@ -10,26 +10,24 @@ from .classes import MetadataMixin
 
 from .functions import get_service_params, get_valid_url, \
     upload_to_gcs, publish_to_endpoint, decode_event, \
-    download_from_gcs, insert_bq_row
+    download_from_gcs, insert_row_to_bq
 
 from .schemas import MOBILE_FRIENDLY_SCHEMA, \
-    CRAWLER_TECH_HISTORY_SCHEMA, TAGS_HISTORY_SCHEMA, \
-    TECH_HISTORY_SCHEMA, CRAWLER_SCHEMA, CLEARBIT_PERSON_SCHEMA, \
-    CLEARBIT_COMPANY_SCHEMA, WP_PLUGIN_LOOKUP_SCHEMA, \
-    WP_PLUGIN_LOOKUP_ERROR_SCHEMA, EMAIL_PROVIDER_SCHEMA
+    CRAWLER_TECH_HISTORY_SCHEMA, CLEARBIT_TAGS_HISTORY_SCHEMA, \
+    CLEARBIT_TECH_HISTORY_SCHEMA, CRAWLER_DOMAIN_SCHEMA, \
+    CLEARBIT_PERSON_SCHEMA, CLEARBIT_EMAILS_HISTORY_SCHEMA, \
+    CLEARBIT_PHONES_HISTORY_SCHEMA, CLEARBIT_COMPANY_SCHEMA, \
+    WP_PLUGIN_LOOKUP_SCHEMA, WP_PLUGIN_LOOKUP_ERROR_SCHEMA, \
+    EMAIL_PROVIDER_SCHEMA
 
 from .constants import MAX_RETRIES
 
-from .deployment import CLEARBIT_TECH_BQ_CONFIGS, \
-    CLEARBIT_TAGS_BQ_CONFIGS, CLEARBIT_PERSON_CONFIGS, \
-    CLEARBIT_COMPANY_CONFIGS, CLEARBIT_CONFIGS, \
-    CRAWLER_TECH_BQ_CONFIGS, CRAWLER_CONFIGS, \
-    CRAWLER_DOMAIN_BQ_CONFIGS, ENDPOINT_CONFIGS, MOBILE_TO_BQ_CONFIGS, \
-    MOBILE_CONFIGS, WP_PLUGIN_LOOKUP_CONFIGS
+from .deployment import CLEARBIT_CONFIGS, CRAWLER_CONFIGS, \
+    ENDPOINT_CONFIGS, MOBILE_CONFIGS, WP_PLUGIN_LOOKUP_CONFIGS
 
-from .wordpress import get_wp_plugin_info_online
+from .wordpress_lookup_service import get_wp_plugin_info_online
 
-from .email_provider import get_email_provider
+from .email_provider_lookup_service import get_email_provider
 
 # TODO: should follow the same versioning cadence as the_refinery
 __all__ = [
@@ -38,9 +36,11 @@ __all__ = [
     "upload_to_gcs",
     "MOBILE_FRIENDLY_SCHEMA",
     "CRAWLER_TECH_HISTORY_SCHEMA",
-    "TECH_HISTORY_SCHEMA",
-    "TAGS_HISTORY_SCHEMA",
-    "CRAWLER_SCHEMA",
+    "CLEARBIT_TECH_HISTORY_SCHEMA",
+    "CLEARBIT_TAGS_HISTORY_SCHEMA",
+    "CLEARBIT_PHONES_HISTORY_SCHEMA",
+    "CLEARBIT_EMAILS_HISTORY_SCHEMA",
+    "CRAWLER_DOMAIN_SCHEMA",
     "CLEARBIT_COMPANY_SCHEMA",
     "CLEARBIT_PERSON_SCHEMA",
     "WP_PLUGIN_LOOKUP_SCHEMA",
@@ -49,17 +49,12 @@ __all__ = [
     "MetadataMixin",
     "MAX_RETRIES",
     "CLEARBIT_CONFIGS",
-    "CLEARBIT_COMPANY_CONFIGS",
-    "CLEARBIT_PERSON_CONFIGS",
-    "CLEARBIT_TAGS_BQ_CONFIGS",
-    "CLEARBIT_TECH_BQ_CONFIGS",
-    "CRAWLER_DOMAIN_BQ_CONFIGS",
     "CRAWLER_CONFIGS",
-    "CRAWLER_TECH_BQ_CONFIGS",
     "MOBILE_CONFIGS",
-    "MOBILE_TO_BQ_CONFIGS",
     "ENDPOINT_CONFIGS",
     "WP_PLUGIN_LOOKUP_CONFIGS",
     "get_wp_plugin_info_online",
-    "get_email_provider"
+    "get_email_provider",
+    "insert_row_to_bq",
+    "publish_to_endpoint"
 ]

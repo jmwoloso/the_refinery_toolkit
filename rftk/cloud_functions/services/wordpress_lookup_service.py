@@ -1,3 +1,11 @@
+"""
+wordpress_lookup_service.py: A collection of utilities for the wordpress plugin
+lookup service.
+"""
+
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 Clause"
+
 import requests
 import re
 
@@ -6,7 +14,7 @@ from bs4 import BeautifulSoup
 
 def get_wp_plugin_info_online(plugin=None):
     """Takes a plugin name and returns the description, name and
-    tags for the plugin."""
+    tagshttps://www.silvabokis.com/squarespace-tips/how-to-find-out-which-squarespace-template-a-site-is-using for the plugin."""
     print("get_wp_plugin_info_online()")
     plugin_url = "http://plugins.svn.wordpress.org/{}/trunk/" \
         .format(plugin)
@@ -75,36 +83,3 @@ def get_wp_plugin_info_online(plugin=None):
     print("description: {}".format(description))
     print("name: {}".format(name))
     return tags, description, name
-
-
-# def get_wp_plugin_info_from_doc(document=None):
-#     """Takes a scraped WP plugin page and returns the description and
-#     tags and other information for the specified plugin."""
-#     # there might not be any tags
-#     try:
-#         tags = document.find("div",
-#                              {
-#                                  "class": "tags"
-#                              }
-#                              ).contents
-#         # get list of tags
-#         tags = [tag.text for tag in tags]
-#         tags = list(set(tags))
-#     except AttributeError as e:
-#         tags = list()
-#
-#     try:
-#         # pull the description
-#         description = document.find(
-#             "div",
-#             {
-#                 "id": "tab-description"
-#             }
-#         ) \
-#             .contents[3] \
-#             .text \
-#             .strip("\r")
-#     except Exception as e:
-#         description = "no description"
-#         print(e)
-#     return tags, description

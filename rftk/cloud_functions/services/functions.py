@@ -33,7 +33,7 @@ def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
                 content_type="application/json"
             )
             print("payload: {}".format(payload))
-            break
+            return "OK, 200"
 
         # TODO: what should we do here?
         except Exception as e:
@@ -44,12 +44,14 @@ def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
             }
             print(err)
             continue
+    return "SEE ERROR LOGS"
 
 
 def callback(future):
     """Callback function to ensure the future has completed."""
     message_id = future.result()
     print("message_id: {} received.".format(message_id))
+    return "OK, 200"
 
 
 def publish_to_endpoint(messages=None, max_bytes=10000000,
@@ -82,27 +84,7 @@ def publish_to_endpoint(messages=None, max_bytes=10000000,
 
         # attach the callback
         future.add_done_callback(callback)
-
-
-# def publish_to_endpoint(topic=None, message=None):
-#     print("publish_to_endpoint()")
-#     pubsub_client = pubsub.PublisherClient()
-#     # TODO: find a universal way to encode the message so we don't
-#     #  have to write different decoding functions in the_refinery to
-#     #  deal with different publishers; this produces a dict,
-#     #  but product and marketing will be delivering different payloads
-#     byte_encoded_message = str.encode(
-#         json.dumps(
-#             message
-#         )
-#     )
-#     print("topic: {}".format(topic))
-#     topic = pubsub_client.topic_path("infusionsoft-looker-poc",
-#                                      topic)
-#     resp = pubsub_client.publish(topic,
-#                                  byte_encoded_message)
-#
-#     return resp.future()
+    return "OK, 200"
 
 
 def decode_event(event):
@@ -230,8 +212,8 @@ def download_from_gcs(bucket_name=None, file_name=None):
         print(err)
 
 
-def insert_bq_row(dataset=None, table=None, schema=None,
-                  payload=None, payload_type=None):
+def insert_row_to_bq(dataset=None, table=None, schema=None,
+                     payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
     print("insert_bq_row()")
@@ -274,7 +256,38 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                     )
                 ]
 
-    if payload_type == "tags":
+    if payload_type == "clearbit_emails":
+        for email in payload["emails"]:
+            print("inserting emails.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    email
+                )
+            ]
+    if payload_type == "clearbit_phones":
+        for phone in payload["phones"]:
+            print("inserting phones.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    phone
+                )
+            ]
+
+    if payload_type == "clearbit_tags":
         for tag in payload["tags"]:
             print("inserting tags.")
             row = [
@@ -290,7 +303,7 @@ def insert_bq_row(dataset=None, table=None, schema=None,
                 )
             ]
 
-    if payload_type == "tech":
+    if payload_type == "clearbit_tech":
         for tech in payload["tech"]:
             print("inserting tech.")
             row = [
@@ -541,12 +554,12 @@ def insert_bq_row(dataset=None, table=None, schema=None,
         try:
             # configs for bq
             client = bq.Client()
-            job_config = bq.LoadJobConfig()
-            job_config.schema = schema
-            job_config.source_format = \
-                bq.job.SourceFormat.NEWLINE_DELIMITED_JSON
-            job_config.write_disposition = \
-                bq.job.WriteDisposition.WRITE_APPEND
+            # job_config = bq.LoadJobConfig()
+            # job_config.schema = schema
+            # job_config.source_format = \
+            #     bq.job.SourceFormat.NEWLINE_DELIMITED_JSON
+            # job_config.write_disposition = \
+            #     bq.job.WriteDisposition.WRITE_APPEND
 
             dataset_ref = client.dataset(dataset)
             dataset = bq.Dataset(dataset_ref)
@@ -564,17 +577,16 @@ def insert_bq_row(dataset=None, table=None, schema=None,
             errors = client.insert_rows(
                 table,
                 row,
-                selected_fields=schema
+                selected_fields=schema,
+
             )
 
             if len(errors) != 0:
-                i = 0
                 print(errors)
-        except Exception:
+                continue
+            break
+        except Exception as e:
             if n == max_retries - 1:
+                print(e)
                 raise Exception
             time.sleep(2 ** n)
-
-
-
-

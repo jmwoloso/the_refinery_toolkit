@@ -8,6 +8,7 @@ __license__ = "BSD 3 clause"
 import re
 import requests
 from urllib.parse import urlparse
+import json
 
 from google.cloud import language
 from bs4 import BeautifulSoup
@@ -154,6 +155,31 @@ def get_wp_themes(document=None):
     return themes_list
 
 
+def get_squarespace_context(document=None):
+    """Returns the Squarespace template used on the site."""
+    # this content contains all kinds of useful firmographic data.
+    try:
+        script = document.find(
+            "script",
+            {"data-name": "static-context"}
+        )\
+        .getText(strip=True)
+
+        # now parse out the context object
+        context = re.search(
+            "(?ms)Static\.SQUARESPACE_CONTEXT = ({.+?});",
+            script,
+        ).group(1)
+        context = json.loads(context)
+    except json.decoder.JSONDecodeError as e:
+        print(e)
+        context = None
+    except Exception as e:
+        print(e)
+        context = None
+    return context
+
+
 def get_all_links(document=None):
     """Function that returns all the links found on the visited page."""
     print("get_all_links()")
@@ -283,8 +309,6 @@ def make_crawler_gcs_payload(request=None):
     p["domain"] = r["domain"]
     p["url"] = r["url"]
     p["html_string"] = r["document"]
-    p["wp_themes"] = r["wp_themes"]
-    p["wp_plugins"] = r["wp_plugins"]
     p["all_links"] = r["all_links"]
     p["internal_links"] = r["internal_links"]
     p["external_links"] = r["external_links"]
@@ -392,6 +416,98 @@ def make_crawler_bq_payload(request=None):
     return p
 
 
+def wordpress_routines(request=None):
+    """Utility function containing all the wordpress enrichment 
+    routines."""
+    print("wordpress_routines()")
+
+    # container for holding the crawler results
+    resp = MetadataMixin()
+
+    # add the domain and url to the metadata container
+    resp["domain"] = request["domain"]
+    resp["url"] = request["url"]
+
+    # crawl the site and return the html for parsing
+    resp["document"] = crawl_and_parse(url=resp["url"])
+
+    # get the word press themes
+    resp["wp_themes"] = get_wp_themes(document=resp["document"])
+
+    # get the word press plugins
+    resp["wp_plugins"] = get_wp_plugins(document=resp["document"])
+
+    return resp
+
+
+def squarespace_routines(request=None):
+    """Utility function containing"""
+    print("squarespace_routines()")
+
+    # container for holding the crawler results
+    resp = MetadataMixin()
+
+    # add the domain and url to the metadata container
+    resp["domain"] = request["domain"]
+    resp["url"] = request["url"]
+
+    # crawl the site and return the html for parsing
+    resp["document"] = crawl_and_parse(url=resp["url"])
+
+    # if the site is squarespace, we'll get the context object and
+    # parse the info in it
+    resp["squarespace_context"] = get_squarespace_context(
+        document=resp["document"])
+
+    return resp
+
+
+def domain_routines(request=None):
+    """Utility function containing the normal enrichment routines for
+    the webcrawler."""
+    print("domain_routines()")
+
+    # container for holding the crawler results
+    resp = MetadataMixin()
+
+    # add the domain and url to the metadata container
+    resp["domain"] = request["domain"]
+    resp["url"] = request["url"]
+
+    # crawl the site and return the html for parsing
+    resp["document"] = crawl_and_parse(url=resp["url"])
+
+    # get all links
+    resp["all_links"] = get_all_links(document=resp["document"])
+
+    # get the internal links
+    resp["internal_links"] = \
+        get_internal_links(url=resp["url"],
+                               links=resp["all_links"])
+
+    # get the external links
+    resp["external_links"] = \
+        get_external_links(internal_links=resp["internal_links"],
+                               all_links=resp["all_links"])
+
+    # get the phone, email and social data
+    resp["href_emails"], resp["href_phones"], resp["href_socials"] = \
+        get_hrefs(document=resp["document"])
+
+    # get the keyword and description
+    resp["meta_keywords"], resp["meta_description"] = \
+        get_keywords_and_description(document=resp["document"])
+
+    # get the content classification
+    resp["content_classification"] = \
+        get_content_class(content=resp["document"].text)
+
+    # convert bs4 soup to plain string so we can convert it to json
+    resp["document"] = resp["document"].prettify()
+
+    return resp
+
+
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
 def make_crawler_tech_payload(request=None):
     """Utility function that creates a payload for the Wordpress
@@ -407,11 +523,181 @@ def make_crawler_tech_payload(request=None):
     p["url"] = r["url"]
     p["ip_revealed"] = r["ip_revealed"]
     p["fuzzy_match"] = r["fuzzy_match"]
+    # TODO: add additional lists here (wix, squarespace, etc.)
     if len(r["wp_themes"]) != 0:
         p["wp_themes"] = r["wp_themes"]
     if len(r["wp_plugins"]) != 0:
         p["wp_plugins"] = r["wp_plugins"]
     print("payload: {}".format(p))
+    return p
+
+
+def make_crawler_squarespace_payload(request=None):
+    """Extracts useful fields from the Static.SQUARESPACE_CONTEXT
+    object."""
+    print("make_crawler_squarespace_payload()")
+    r = request["squarespace_context"].copy()
+    p = MetadataMixin()
+    p["refinery_company_id"] = request["refinery_company_id"]
+    p["refined_at"] = request["refined_at"]
+    p["refined_date"] = request["refined_date"]
+    p["domain"] = request["domain"]
+    p["url"] = request["url"]
+    p["ip_revealed"] = request["ip_revealed"]
+    p["fuzzy_match"] = request["fuzzy_match"]
+
+    # there is no guarantee any of these will be available in the
+    # payload
+    try:
+        p["template_id"] = r["templateId"]
+    except KeyError as e:
+        p["template_id"] = None
+    try:
+        p["authentic_url"] = r["website"]["authenticUrl"]
+    except KeyError as e:
+        p["authentic_url"] = None
+    try:
+        p["base_url"] = r["website"]["baseUrl"]
+    except KeyError as e:
+        p["base_url"] = None
+    try:
+        p["content_modified_at"] = r["website"]["contentModifiedOn"]
+    except KeyError as e:
+        p["content_modified_at"] = None
+    try:
+        p["internal_url"] = r["website"]["internalUrl"]
+    except KeyError as e:
+        p["internal_url"] = None
+    try:
+        p["language"] = r["website"]["language"]
+    except KeyError as e:
+        p["language"] = None
+    try:
+        p["time_zone"] = r["website"]["timeZone"]
+    except KeyError as e:
+        p["time_zone"] = None
+    try:
+        p["time_zone_abbr"] = r["website"]["timeZoneAbbr"]
+    except KeyError as e:
+        p["time_zone_abbr"] = None
+    try:
+        p["utc_offset"] = r["website"]["TimeZoneOffset"] / 3.6e+6
+    except KeyError as e:
+        p["utc_offset"] = None
+    try:
+        p["site_description"] = r["website"]["siteDescription"].replace(
+            "\r", "").replace("\n", "").replace("<p>", "")
+    except KeyError as e:
+        p["site_description"] = None
+    try:
+        p["site_title"] = r["website"]["siteTitle"]
+    except KeyError as e:
+        p["site_title"] = None
+    try:
+        p["primary_domain"] = r["website"]["primaryDomain"]
+    except KeyError as e:
+        p["primary_domain"] = None
+    try:
+        # TODO: this is a list so iterate through when adding to BQ
+        p["social_accounts"] = r["website"]["socialAccounts"]
+    except KeyError as e:
+        p["social_accounts"] = None
+    try:
+        p["state"] = r["websiteSettings"]["state"]
+    except KeyError as e:
+        p["state"] = None
+    try:
+        p["supported_currencies"] = \
+        r["websiteSettings"]["storeSettings"] \
+            ["currenciesSupported"]
+    except KeyError as e:
+        p["supported_currencies"] = None
+    try:
+        p["default_currency"] = r["websiteSettings"]["storeSettings"] \
+            ["defaultCurrency"]
+    except KeyError as e:
+        p["default_currency"] = None
+    try:
+        p["express_checkout_enabled"] = \
+        r["websiteSettings"]["storeSettings"] \
+            ["expressCheckout"]
+    except KeyError as e:
+        p["express_checkout_enabled"] = None
+    try:
+        p["light_cart_enabled"] = r["websiteSettings"]["storeSettings"] \
+            ["useLightCart"]
+    except KeyError as e:
+        p["light_cart_enabled"] = None
+    try:
+        p["squarespace_website_id"] = \
+        r["websiteSettings"]["storeSettings"] \
+            ["websiteId"]
+    except KeyError as e:
+        p["squarespace_website_id"] = None
+    try:
+        p["mailing_list_opt_in_enabled"] = \
+        r["websiteSettings"]["storeSettings"] \
+            ["enableMailingListOptInByDefault"]
+    except KeyError as e:
+        p["mailing_list_opt_in_enabled"] = None
+    try:
+        p["business_name"] = \
+            r["websiteSettings"]["storeSettings"] \
+                ["businessName"]
+    except KeyError as e:
+        p["business_name"] = None
+    try:
+        p["business_address_line_1"] = \
+            r["websiteSettings"]["storeSettings"] \
+                ["contactLocation"]["addressLine1"]
+    except KeyError as e:
+        p["business_address_line_1"] = None
+    try:
+        p["business_address_line_2"] = \
+            r["websiteSettings"]["storeSettings"] \
+                ["contactLocation"]["addressLine2"]
+    except KeyError as e:
+        p["business_address_line_2"] = None
+    try:
+        p["business_address_country"] = \
+            r["websiteSettings"]["storeSettings"] \
+                ["contactLocation"]["addressCountry"]
+    except KeyError as e:
+        p["business_address_country"] = None
+    try:
+        p["typekit_id"] = r["website"]["typekitId"]
+    except KeyError as e:
+        p["typekit_id"] = None
+    try:
+        p["typekit_id"] = r["website"]["typekitId"]
+    except KeyError as e:
+        p["typekit_id"] = None
+    try:
+        p["address_title"] = r["website"]["location"][
+            "addressTitle"]
+    except KeyError as e:
+        p["address_title"] = None
+    try:
+        p["address_line_1"] = r["website"]["location"][
+            "addressLine1"]
+    except KeyError as e:
+        p["address_line_1"] = None
+    try:
+        p["address_line_2"] = r["website"]["location"][
+            "addressLine2"]
+    except KeyError as e:
+        p["address_line_2"] = None
+    try:
+        p["latitude"] = r["website"]["location"]["mapLat"]
+    except KeyError as e:
+        p["latitude"] = None
+    try:
+        p["longitude"] = r["website"]["location"]["mapLng"]
+    except KeyError as e:
+        p["latitude"] = None
+    # try:
+    #     p["payment_settings"] = r["website"][""]
+
     return p
 
 
