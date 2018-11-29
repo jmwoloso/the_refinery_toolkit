@@ -7,10 +7,11 @@ __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
 import time
+import re
 import base64
 import json
-import requests
 
+import requests
 from google.cloud import storage, pubsub
 from google.cloud import bigquery as bq
 import validators
@@ -55,7 +56,8 @@ def callback(future):
 
 
 def publish_to_endpoint(messages=None, max_bytes=10000000,
-                        max_latency=0.05, max_messages=1000):
+                        max_latency=0.05, max_messages=1000,
+                        delay_length_in_seconds=None):
     print("publish_to_endpoint()")
     # apply the batch settings if specified
     batch_settings = pubsub.types.BatchSettings(
@@ -70,6 +72,7 @@ def publish_to_endpoint(messages=None, max_bytes=10000000,
     #  have to write different decoding functions in the_refinery to
     #  deal with different publishers; this produces a dict,
     #  but product and marketing will be delivering different payloads
+    n = 0
     for message in messages:
         byte_encoded_message = str.encode(
             json.dumps(
@@ -84,6 +87,15 @@ def publish_to_endpoint(messages=None, max_bytes=10000000,
 
         # attach the callback
         future.add_done_callback(callback)
+
+        # increment our counter
+        n += 1
+
+        # add some rate-limiting
+        if delay_length_in_seconds is not None:
+            if n % max_messages == 0:
+                time.sleep(delay_length_in_seconds)
+
     return "OK, 200"
 
 
@@ -145,11 +157,11 @@ def get_valid_url(domain=None):
             resp = requests.get(url)
             # one last check for status
             if resp.status_code != 200:
-                url = "the_supplied_domain_is_invalid"
+                url = None
         except requests.exceptions.HTTPError as e:
-            url = "the_supplied_domain_is_invalid"
+            url = None
         except Exception as e:
-            url = "the_supplied_domain_is_invalid"
+            url = None
 
     # validation failed
     else:
@@ -158,7 +170,7 @@ def get_valid_url(domain=None):
         is_valid_domain = validators.domain(domain)
         # we can't construct a valid url without a valid domain
         if is_valid_domain is not True:
-            url = "the_supplied_domain_is_invalid"
+            url = None
         else:
             # try to construct a valid url
             if domain.lower().startswith("www."):
@@ -169,19 +181,49 @@ def get_valid_url(domain=None):
             # one more validation check then try to open the url
             is_valid_url = validators.url(url)
             if is_valid_url is not True:
-                url = "the_supplied_domain_is_invalid"
+                url = None
 
             # now try to open the url as a final check
             try:
                 resp = requests.get(url)
                 # one last check for status
                 if resp.status_code != 200:
-                    url = "the_supplied_domain_is_invalid"
+                    url = None
             except requests.exceptions.HTTPError as e:
-                url = "the_supplied_domain_is_invalid"
+                url = None
             except Exception as e:
-                url = "the_supplied_domain_is_invalid"
+                url = None
     return url
+
+
+def is_valid_email(email=None):
+    """Validates whether the email provided is syntactically correct."""
+    # source: https://stackoverflow.com/questions/201323/how-to-validate-an-email-address-using-a-regular-expression
+    # TODO: implement the python equivalent of the state machine
+    #  found here: https://github.com/cubiclesoft/ultimate-email
+    r = re.compile(
+        """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
+    )
+    try:
+        is_valid = False if re.match(r, email) is None else True
+    except Exception as e:
+        print(e)
+        is_valid = False
+    return is_valid
+
+
+def get_domain_from_email(email=None):
+    """Returns the domain from the provided email address."""
+    r = re.compile(
+        """^(.*@)([\w.]+)"""
+    )
+    try:
+        domain = re.match(r, email).group(2)
+        print("domain: {}".format(domain))
+    except Exception as e:
+        print(e)
+        domain = None
+    return domain
 
 
 def download_from_gcs(bucket_name=None, file_name=None):
@@ -212,112 +254,11 @@ def download_from_gcs(bucket_name=None, file_name=None):
         print(err)
 
 
-def insert_row_to_bq(dataset=None, table=None, schema=None,
+def insert_one_to_bq(dataset=None, table=None, schema=None,
                      payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
-    print("insert_bq_row()")
-
-    if payload_type == "crawler_tech":
-        keys = payload.keys()
-        if "wp_themes" in keys:
-            print("inserting themes.")
-            for theme in payload["wp_themes"]:
-                row = [
-                    (
-                        payload["refinery_company_id"],
-                        payload["refined_at"],
-                        payload["refined_date"],
-                        payload["domain"],
-                        payload["url"],
-                        payload["ip_revealed"],
-                        payload["fuzzy_match"],
-                        theme,
-                        "theme",
-                        "wordpress"
-                    )
-                ]
-
-        if "wp_plugins" in keys:
-            print("inserting plugins.")
-            for plugin in payload["wp_plugins"]:
-                row = [
-                    (
-                        payload["refinery_company_id"],
-                        payload["refined_at"],
-                        payload["refined_date"],
-                        payload["domain"],
-                        payload["url"],
-                        payload["ip_revealed"],
-                        payload["fuzzy_match"],
-                        plugin,
-                        "plugin",
-                        "wordpress"
-                    )
-                ]
-
-    if payload_type == "clearbit_emails":
-        for email in payload["emails"]:
-            print("inserting emails.")
-            row = [
-                (
-                    payload["refinery_company_id"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["domain"],
-                    payload["url"],
-                    payload["ip_revealed"],
-                    payload["fuzzy_match"],
-                    email
-                )
-            ]
-    if payload_type == "clearbit_phones":
-        for phone in payload["phones"]:
-            print("inserting phones.")
-            row = [
-                (
-                    payload["refinery_company_id"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["domain"],
-                    payload["url"],
-                    payload["ip_revealed"],
-                    payload["fuzzy_match"],
-                    phone
-                )
-            ]
-
-    if payload_type == "clearbit_tags":
-        for tag in payload["tags"]:
-            print("inserting tags.")
-            row = [
-                (
-                    payload["refinery_company_id"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["domain"],
-                    payload["url"],
-                    payload["ip_revealed"],
-                    payload["fuzzy_match"],
-                    tag
-                )
-            ]
-
-    if payload_type == "clearbit_tech":
-        for tech in payload["tech"]:
-            print("inserting tech.")
-            row = [
-                (
-                    payload["refinery_company_id"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["domain"],
-                    payload["url"],
-                    payload["ip_revealed"],
-                    payload["fuzzy_match"],
-                    tech
-                )
-            ]
+    print("insert_one_to_bq()")
 
     if payload_type == "mobile":
         print("inserting mobile test results.")
@@ -453,8 +394,6 @@ def insert_row_to_bq(dataset=None, table=None, schema=None,
                 payload["legal_name"],
                 payload["company_domain"],
                 payload["domain_aliases"],
-                payload["phone_numbers"],
-                payload["email_addresses"],
                 payload["industry"],
                 payload["industry_group"],
                 payload["sub_industry"],
@@ -510,20 +449,6 @@ def insert_row_to_bq(dataset=None, table=None, schema=None,
             )
         ]
 
-    if payload_type == "wp_lookup":
-        print("updating wp plugin lookup table.")
-        for tag in payload["tags"]:
-            row = [
-                (
-                    payload["plugin"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["name"],
-                    tag,
-                    payload["description"]
-                )
-            ]
-
     if payload_type == "wp_lookup_error":
         print("updating wp plugin error table.")
         row = [
@@ -534,20 +459,17 @@ def insert_row_to_bq(dataset=None, table=None, schema=None,
             )
         ]
 
-    if payload_type == "email_provider":
-        print("inserting email provider lookup results.")
-        for email_provider, mx_record in zip(
-                payload["email_providers"], payload["mx_records"]):
-            row = [
-                (
-                    payload["refinery_company_id"],
-                    payload["refined_at"],
-                    payload["refined_date"],
-                    payload["domain"],
-                    mx_record,
-                    email_provider
-                )
-            ]
+    if payload_type == "ip_lookup":
+        print("adding row to ip lookup table.")
+        row = [
+            (
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["ip_address"],
+                payload["reason"],
+                payload["source"]
+            )
+        ]
 
     max_retries = 7
     for n in range(max_retries):
@@ -590,3 +512,332 @@ def insert_row_to_bq(dataset=None, table=None, schema=None,
                 print(e)
                 raise Exception
             time.sleep(2 ** n)
+
+
+
+def insert_many_to_bq(dataset=None, table=None, schema=None,
+                      payload=None, payload_type=None):
+    """Utility function for inserting json rows into the specified
+    table."""
+    print("insert_many_to_bq()")
+
+    # configs for bq
+    client = bq.Client()
+    # job_config = bq.LoadJobConfig()
+    # job_config.schema = schema
+    # job_config.source_format = \
+    #     bq.job.SourceFormat.NEWLINE_DELIMITED_JSON
+    # job_config.write_disposition = \
+    #     bq.job.WriteDisposition.WRITE_APPEND
+
+    dataset_ref = client.dataset(dataset)
+    dataset = bq.Dataset(dataset_ref)
+    table_ref = dataset.table(table)
+    table = bq.Table(table_ref,
+                     schema=schema)
+
+    print("dataset: {}".format(dataset))
+    print("table: {}".format(table))
+    print("schema: {}".format(schema))
+    print("payload: {}".format(payload))
+    print("payload type: {}".format(payload_type))
+
+    if payload_type == "crawler_tech":
+        keys = payload.keys()
+        if "wp_themes" in keys:
+            print("inserting themes.")
+            for theme in payload["wp_themes"]:
+                row = [
+                    (
+                        payload["refinery_company_id"],
+                        payload["refined_at"],
+                        payload["refined_date"],
+                        payload["domain"],
+                        payload["url"],
+                        payload["ip_revealed"],
+                        payload["fuzzy_match"],
+                        theme,
+                        "theme",
+                        "wordpress"
+                    )
+                ]
+
+                max_retries = 7
+                for n in range(max_retries):
+                    try:
+                        # attempt to insert the record
+                        errors = client.insert_rows(
+                            table,
+                            row,
+                            selected_fields=schema,
+
+                        )
+
+                        if len(errors) != 0:
+                            print(errors)
+                            continue
+                        break
+                    except Exception as e:
+                        if n == max_retries - 1:
+                            print(e)
+                            raise Exception
+                        time.sleep(2 ** n)
+
+        if "wp_plugins" in keys:
+            print("inserting plugins.")
+            for plugin in payload["wp_plugins"]:
+                row = [
+                    (
+                        payload["refinery_company_id"],
+                        payload["refined_at"],
+                        payload["refined_date"],
+                        payload["domain"],
+                        payload["url"],
+                        payload["ip_revealed"],
+                        payload["fuzzy_match"],
+                        plugin,
+                        "plugin",
+                        "wordpress"
+                    )
+                ]
+
+                max_retries = 7
+                for n in range(max_retries):
+                    try:
+                        # attempt to insert the record
+                        errors = client.insert_rows(
+                            table,
+                            row,
+                            selected_fields=schema,
+
+                        )
+
+                        if len(errors) != 0:
+                            print(errors)
+                            continue
+                        break
+                    except Exception as e:
+                        if n == max_retries - 1:
+                            print(e)
+                            raise Exception
+                        time.sleep(2 ** n)
+
+    if payload_type == "clearbit_emails":
+        for email in payload["emails"]:
+            print("inserting emails.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    email
+                )
+            ]
+
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    if payload_type == "clearbit_phones":
+        for phone in payload["phones"]:
+            print("inserting phones.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    phone
+                )
+            ]
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    if payload_type == "clearbit_tags":
+        for tag in payload["tags"]:
+            print("inserting tags.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    tag
+                )
+            ]
+
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    if payload_type == "clearbit_tech":
+        for tech in payload["tech"]:
+            print("inserting tech.")
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    payload["url"],
+                    payload["ip_revealed"],
+                    payload["fuzzy_match"],
+                    tech
+                )
+            ]
+
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    if payload_type == "wp_lookup":
+        print("updating wp plugin lookup table.")
+        for tag in payload["tags"]:
+            row = [
+                (
+                    payload["plugin"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["name"],
+                    tag,
+                    payload["description"]
+                )
+            ]
+
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    if payload_type == "email_provider":
+        print("inserting email provider lookup results.")
+        for email_provider, mx_record in zip(
+                payload["email_providers"], payload["mx_records"]):
+            row = [
+                (
+                    payload["refinery_company_id"],
+                    payload["refined_at"],
+                    payload["refined_date"],
+                    payload["domain"],
+                    mx_record,
+                    email_provider
+                )
+            ]
+
+            max_retries = 7
+            for n in range(max_retries):
+                try:
+                    # attempt to insert the record
+                    errors = client.insert_rows(
+                        table,
+                        row,
+                        selected_fields=schema,
+
+                    )
+
+                    if len(errors) != 0:
+                        print(errors)
+                        continue
+                    break
+                except Exception as e:
+                    if n == max_retries - 1:
+                        print(e)
+                        raise Exception
+                    time.sleep(2 ** n)
+
+    return "OK, 200"

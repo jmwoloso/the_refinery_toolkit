@@ -416,7 +416,7 @@ def make_crawler_bq_payload(request=None):
     return p
 
 
-def wordpress_routines(request=None):
+def wordpress_routines(request=None, is_parsed=True):
     """Utility function containing all the wordpress enrichment 
     routines."""
     print("wordpress_routines()")
@@ -428,8 +428,11 @@ def wordpress_routines(request=None):
     resp["domain"] = request["domain"]
     resp["url"] = request["url"]
 
-    # crawl the site and return the html for parsing
-    resp["document"] = crawl_and_parse(url=resp["url"])
+    if is_parsed is False:
+        # crawl the site and return the html for parsing
+        resp["document"] = crawl_and_parse(url=resp["url"])
+    elif is_parsed is True:
+        resp["document"] = request["document"]
 
     # get the word press themes
     resp["wp_themes"] = get_wp_themes(document=resp["document"])
@@ -509,10 +512,10 @@ def domain_routines(request=None):
 
 
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
-def make_crawler_tech_payload(request=None):
+def make_crawler_wordpress_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
-    print("make_crawler_tech_payload()")
+    print("make_crawler_wordpress_payload()")
     r = request.copy()
     p = MetadataMixin()
 

@@ -7,12 +7,15 @@ __license__ = "BSD 3 clause"
 
 import os
 import base64
+import time
+import requests
 
 import googleapiclient.discovery
 from google.cloud import storage
 import clearbit
 
 from .classes import MemoryCache, MetadataMixin
+from .constants import MAX_RETRIES
 
 
 def decrypt_with_kms(project_id=None, location_id=None,
@@ -140,7 +143,7 @@ def make_clearbit_company_gcs_payload(request=None):
     p["domain"] = request["domain"]
     p["ip_revealed"] = request["ip_revealed"]
     p["fuzzy_match"] = request["fuzzy_match"]
-    p["ip_address"] = request["ip"]
+    p["ip_address"] = request["ip_address"]
 
     # add the company data returned by clearbit
     p["clearbit_company_id"] = r["id"]
@@ -414,3 +417,163 @@ def make_clearbit_phones_payload(request=None):
     p["fuzzy_match"] = r["fuzzy_match"]
     p["phones"] = r["company"]["site"]["phoneNumbers"]
     return p
+
+
+def clearbit_routines(request=None):
+    """Enrichment routines that wrap the Clearbit API."""
+    print("clearbit_routines()")
+    # TODO: add functionality to enable revealing and then enriching
+    #  make the appropriate endpoint request
+    # TODO: make sure to return the expected payload here
+
+    for n in range(MAX_RETRIES):
+        try:
+            if request["clearbit_reveal"] is True:
+                print("Reveal API")
+                ip_address = request["ip_address"]
+                print("ip_address: {}".format(ip_address))
+                resp = clearbit.Reveal.find(ip=ip_address)
+
+                print("request sent")
+                print("status: {}".format(resp))
+                # 202 (async lookup; try again momentarily)
+                if "pending" in resp.keys():
+                    print("request is pending.")
+                    time.sleep(1.0)
+                    continue
+
+                # 404
+                if resp is None:
+                    err = {
+                        "error_message": "Person/Company Not Found",
+                        "status_code": "404"
+                    }
+                    print(err)
+
+                    # we still need to return the expected payload
+                    resp = {
+                        "error": "Person/Company Not Found",
+                        "status": "404",
+                        "company": None,
+                        "person": None
+                    }
+                break
+            elif request["clearbit_enrich"] is True:
+                # TODO: NOTE: big "gotcha" here as the email address
+                #  takes precedent over the domain if provided,
+                #  so using something like
+                #  jason.wolosonovich@infusionsoft.com with a domain
+                #  of 'cxmybiz.com' will return person info on jason
+                #  as well as company info on infusionsoft (instead
+                #  of cxmybiz.com)
+                print("Enrichment API")
+                params = {
+                    "email": request["email"],
+                    "ip": request["ip_address"],
+                    "company_domain": request["domain"]
+                }
+                print("sending request")
+                resp = clearbit.Enrichment.find(**params,
+                                                streaming=True)
+    
+                print("request sent")
+                print("status: {}".format(resp))
+                # 202 (async lookup; try again momentarily)
+                if "pending" in resp.keys():
+                    print("request is pending.")
+                    time.sleep(1.0)
+                    continue
+
+                # 404
+                if resp is None:
+                    err = {
+                        "error_message": "Person/Company Not Found",
+                        "status_code": "404"
+                    }
+                    print(err)
+
+                    # we still need to return the expected payload
+                    resp = {
+                        "error": "Person/Company Not Found",
+                        "status": "404",
+                        "company": None,
+                        "person": None
+                    }
+                break
+            elif request["clearbit_reveal"] is False and request[
+                "clearbit_enrich"] is False:
+                print("either `clearbit_reveal` or `clearbit_enrich` "
+                      "must be True")
+                return "Unprocessable Entity, 422"
+    
+        except requests.exceptions.HTTPError as e:
+            status = str(e.response.status_code)
+            if status == "404":
+                if n == MAX_RETRIES - 1:
+                    # we still need to return the expected payload
+                    resp = {
+                        "error": "Person/Company Not Found",
+                        "status": "404",
+                        "company": None,
+                        "person": None
+                    }
+                    print(resp)
+                    break
+                continue
+                
+            elif status == "429":
+                if n == MAX_RETRIES - 1:
+                    # we still need to return the expected payload
+                    resp = {
+                        "error": "Person/Company Not Found",
+                        "status": "429",
+                        "company": None,
+                        "person": None
+                    }
+                    print(resp)
+                    break
+                continue
+    
+            else:
+                if n == MAX_RETRIES - 1:
+                    # we still need to return the expected payload
+                    resp = {
+                        "error": "Person/Company Not Found",
+                        "status": "404",
+                        "company": None,
+                        "person": None
+                    }
+                    print(resp)
+                    break
+                continue
+    
+        except UnboundLocalError as e:
+            if n == MAX_RETRIES - 1:
+                resp = {
+                    "error": "Person/Company Not Found",
+                    "status": "404",
+                    "company": None,
+                    "person": None
+                }
+                print(resp)
+                break
+            continue
+        # catch-all for python exceptions
+        except Exception as e:
+            if n == MAX_RETRIES - 1:
+                resp = {
+                    "error": "Person/Company Not Found",
+                    "status": "404",
+                    "company": None,
+                    "person": None
+                }
+                print(resp)
+                break
+            continue          
+    
+        # TODO: this is really a 404 error but the clearbit
+        # library makes it unclear that this is the case
+        # ref: https://github.com/clearbit/clearbit-python/blob
+        # /master/clearbit/resource.py
+
+    return resp

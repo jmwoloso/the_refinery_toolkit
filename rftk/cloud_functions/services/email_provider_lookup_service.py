@@ -1,7 +1,6 @@
 import re
 
-import dns
-# import dns.resolver
+import dns.resolver
 import dns.exception
 
 
@@ -17,17 +16,20 @@ def get_email_provider(domain=None):
             print("getting email providers for: {}"
                   .format(domain))
 
+            print("adjusting resolver params")
             # adjust the timeout settings (quicker)
             # https://github.com/rthalley/dnspython/issues/22
-            dns.resolver().get_default_resolver().timeout = 10.0
-            dns.resolver().get_default_resolver().lifetime = 10.0
+            dns.resolver.get_default_resolver().timeout = 10.0
+            dns.resolver.get_default_resolver().lifetime = 10.0
 
             # TODO: verify where the domain is being stored in the request
             for record in dns.resolver.query(domain, "MX"):
+                print("attempt: {}".format(n+1))
                 # get the current result and parse out the index value
                 result = re.sub("\d+\s",
                                 "",
                                 record.to_text())
+                print("mx_record: {}".format(result))
 
                 # append the raw record
                 mx_records.append(result)
@@ -38,6 +40,7 @@ def get_email_provider(domain=None):
                 # combine the two parts
                 email_provider = ".".join(email_provider)
 
+                print("email_provider: {}".format(email_provider))
                 # append to the list
                 email_providers.append(email_provider)
 
@@ -46,48 +49,48 @@ def get_email_provider(domain=None):
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
         except dns.exception.FormError as e:
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
         except dns.exception.UnexpectedEnd as e:
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
         except dns.exception.TooBig as e:
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
         except dns.exception.SyntaxError as e:
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
         except dns.exception.DNSException as e:
             print("error with {}: {}".format(domain,
                                              e))
             if n == max_retries - 1:
-                email_providers = []
-                mx_records = []
+                email_providers = "error"
+                mx_records = "error"
                 return email_providers, mx_records
             continue
 

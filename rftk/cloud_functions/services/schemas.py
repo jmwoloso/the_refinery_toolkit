@@ -151,7 +151,7 @@ CLEARBIT_PHONES_HISTORY_SCHEMA = [
 ]
 
 # crawler tech history
-CRAWLER_TECH_HISTORY_SCHEMA = [
+CRAWLER_WORDPRESS_PLUGIN_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
@@ -705,6 +705,26 @@ EMAIL_PROVIDER_SCHEMA = [
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="email_provider",
+                   field_type="string",
+                   mode="required")
+]
+
+
+# ip lookup table schema
+IP_LOOKUP_SCHEMA = [
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="ip_address",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="reason",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="source",
                    field_type="string",
                    mode="required")
 ]
