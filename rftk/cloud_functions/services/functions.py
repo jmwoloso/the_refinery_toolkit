@@ -151,12 +151,15 @@ def get_valid_url(domain=None):
     is_valid_url = validators.url(domain)
 
     if is_valid_url is True:
+        print("domain is a valid url")
         url = domain
         # there are edge-cases where this will still pass
         try:
             resp = requests.get(url)
+            print("status code: {}".format(resp.status_code))
             # one last check for status
             if resp.status_code != 200:
+                print("could not get url: {}".format(url))
                 url = None
         except requests.exceptions.HTTPError as e:
             url = None
@@ -168,8 +171,10 @@ def get_valid_url(domain=None):
         # check to see if it is a valid domain that we can use to
         # construct a url from
         is_valid_domain = validators.domain(domain)
+        print("is_valid_domain: {}".format(is_valid_domain))
         # we can't construct a valid url without a valid domain
         if is_valid_domain is not True:
+            print("domain is not valid")
             url = None
         else:
             # try to construct a valid url
@@ -177,18 +182,38 @@ def get_valid_url(domain=None):
                 url = "http://" + domain.lower()
             else:
                 url = "http://www." + domain.lower()
+            print("constructed url: {}".format(url))
 
             # one more validation check then try to open the url
             is_valid_url = validators.url(url)
-            if is_valid_url is not True:
-                url = None
 
+            print("is_valid_url: {}".format(is_valid_url))
             # now try to open the url as a final check
             try:
                 resp = requests.get(url)
+                print("status code: {}".format(resp.status_code))
                 # one last check for status
                 if resp.status_code != 200:
-                    url = None
+                    print("could not get url: {}".format(url))
+                    # try https then
+                    # try to construct a valid url
+                    print("trying https instead")
+                    if domain.lower().startswith("www."):
+                        url = "https://" + domain.lower()
+                    else:
+                        url = "https://www." + domain.lower()
+                    try:
+                        resp = requests.get(url)
+                        print("status code: {}"
+                              .format(resp.status_code))
+                        if resp.status_code != 200:
+                            print("could not get https url: {}"
+                                  .format(url))
+                            url = None
+                    except requests.exceptions.HTTPError as e:
+                        url = None
+                    except Exception as e:
+                        url = None
             except requests.exceptions.HTTPError as e:
                 url = None
             except Exception as e:
