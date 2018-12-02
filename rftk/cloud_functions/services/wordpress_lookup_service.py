@@ -11,6 +11,7 @@ import re
 
 from bs4 import BeautifulSoup
 
+from .crawler_service import HEADERS
 
 def get_wp_plugin_info_online(plugin=None):
     """Takes a plugin name and returns the description, name and
@@ -19,7 +20,8 @@ def get_wp_plugin_info_online(plugin=None):
     plugin_url = "http://plugins.svn.wordpress.org/{}/trunk/" \
         .format(plugin)
     try:
-        r = requests.get(url=plugin_url)
+        r = requests.get(url=plugin_url,
+                         headers=HEADERS)
     except requests.exceptions.HTTPError as e:
         print(e)
 
@@ -44,7 +46,8 @@ def get_wp_plugin_info_online(plugin=None):
         # now visit that and parse the description
         try:
             readme_url = plugin_url + txt_href
-            r = requests.get(url=readme_url)
+            r = requests.get(url=readme_url,
+                             headers=HEADERS)
         except requests.exceptions.HTTPError as e:
             print(e)
 

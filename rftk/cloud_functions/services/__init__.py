@@ -2,7 +2,7 @@
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
 
-__version__ = "0.4.55"
+__version__ = "0.5.0"
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
@@ -23,6 +23,8 @@ from .schemas import MOBILE_FRIENDLY_SCHEMA, \
     EMAIL_PROVIDER_SCHEMA, IP_LOOKUP_SCHEMA
 
 from .constants import MAX_RETRIES
+
+from .crawler_service import HEADERS
 
 from .deployment import CLEARBIT_CONFIGS, CRAWLER_CONFIGS, \
     ENDPOINT_CONFIGS, MOBILE_CONFIGS, WP_PLUGIN_LOOKUP_CONFIGS
@@ -53,6 +55,7 @@ __all__ = [
     "IP_LOOKUP_SCHEMA",
     "MetadataMixin",
     "MAX_RETRIES",
+    "HEADERS",
     "CLEARBIT_CONFIGS",
     "CRAWLER_CONFIGS",
     "MOBILE_CONFIGS",

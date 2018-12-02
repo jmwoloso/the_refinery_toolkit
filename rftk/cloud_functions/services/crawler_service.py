@@ -15,6 +15,12 @@ from bs4 import BeautifulSoup
 
 from .classes import MetadataMixin
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/61.0.3163.100 Safari/537.36"
+}
+
 
 def is_email_link(href=None):
     """Utility function to determine whether the supplied href attribute
@@ -276,15 +282,9 @@ def crawl_and_parse(url=None):
     """Utility function to crawl and return the HTML from the
     supplied domain."""
     print("crawl_and_parse()")
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                      "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/61.0.3163.100 Safari/537.36"
-    }
-
     try:
         resp = requests.get(url=url,
-                            headers=headers)
+                            headers=HEADERS)
         resp.raise_for_status()
     except requests.exceptions.HTTPError as e:
         resp = "Error: {}".format(e)

@@ -16,6 +16,8 @@ from google.cloud import storage, pubsub
 from google.cloud import bigquery as bq
 import validators
 
+from .crawler_service import HEADERS
+
 
 def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
                   file_suffix=None):
@@ -155,7 +157,8 @@ def get_valid_url(domain=None):
         url = domain
         # there are edge-cases where this will still pass
         try:
-            resp = requests.get(url)
+            resp = requests.get(url,
+                                headers=HEADERS)
             print("status code: {}".format(resp.status_code))
             # one last check for status
             if resp.status_code != 200:
@@ -190,7 +193,8 @@ def get_valid_url(domain=None):
             print("is_valid_url: {}".format(is_valid_url))
             # now try to open the url as a final check
             try:
-                resp = requests.get(url)
+                resp = requests.get(url,
+                                    headers=HEADERS)
                 print("status code: {}".format(resp.status_code))
                 # one last check for status
                 if resp.status_code != 200:
@@ -203,7 +207,8 @@ def get_valid_url(domain=None):
                     else:
                         url = "https://www." + domain.lower()
                     try:
-                        resp = requests.get(url)
+                        resp = requests.get(url,
+                                            headers=HEADERS)
                         print("status code: {}"
                               .format(resp.status_code))
                         if resp.status_code != 200:

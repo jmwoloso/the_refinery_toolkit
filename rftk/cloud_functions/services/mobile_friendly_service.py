@@ -9,6 +9,8 @@ __license__ = "BSD 3 clause"
 import requests
 import time
 
+from .crawler_service import HEADERS
+
 
 # TODO: this needs more thorough investigation/testing to see how/why
 # we keep getting 502 errors
@@ -16,9 +18,9 @@ def check_mobile_friendly(request=None):
     """Utility function to test whether the supplied domain is mobile
     friendly."""
     print("check_mobile_friendly()")
+    print("url: {}".format(request["url"]))
     # pause to avoid being rate-limited
     time.sleep(1)
-    headers = {"Content-Type": "application/json"}
     json_data = {"url": request["url"]}
     api_url = \
         "https://searchconsole.googleapis.com/v1/urlTestingTools" \
@@ -31,7 +33,7 @@ def check_mobile_friendly(request=None):
         try:
             resp = requests.post(
                 url=api_url,
-                headers=headers,
+                headers=HEADERS,
                 json=json_data
             )
             resp.raise_for_status()
@@ -45,19 +47,20 @@ def check_mobile_friendly(request=None):
             resp = str(e.response.status_code)
             continue
 
-    resp_ = {
-        "refinery_company_id": request["refinery_company_id"],
-        "refined_at": request["refined_at"],
-        "refined_date": request["refined_date"],
-        "domain": request["domain"],
-        "url": request["url"],
-        "ip_revealed": request["ip_revealed"],
-        "fuzzy_match": request["fuzzy_match"]
-    }
+    if success is True:
+        resp_ = {
+            "refinery_company_id": request["refinery_company_id"],
+            "refined_at": request["refined_at"],
+            "refined_date": request["refined_date"],
+            "domain": request["domain"],
+            "url": request["url"],
+            "ip_revealed": request["ip_revealed"],
+            "fuzzy_match": request["fuzzy_match"]
+        }
 
     # we never were able to successfully test the url
     if success is False:
-        resp_["test_results"] = str(resp.status) + ": " + resp.reason
+        resp_ = None
 
     else:
         # tests passed successfully
