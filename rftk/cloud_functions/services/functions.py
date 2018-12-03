@@ -536,12 +536,16 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
             if len(errors) != 0:
                 print(errors)
                 continue
+            success = True
             break
         except Exception as e:
             if n == max_retries - 1:
                 print(e)
-                raise Exception
+                success = False
+                break
             time.sleep(2 ** n)
+            continue
+    return "success: {}".format(success)
 
 
 
@@ -606,12 +610,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                         if len(errors) != 0:
                             print(errors)
                             continue
+                        success = True
                         break
                     except Exception as e:
                         if n == max_retries - 1:
                             print(e)
-                            raise Exception
+                            success = False
+                            break
                         time.sleep(2 ** n)
+                        continue
 
         if "wp_plugins" in keys:
             print("inserting plugins.")
@@ -645,12 +652,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                         if len(errors) != 0:
                             print(errors)
                             continue
+                        success = True
                         break
                     except Exception as e:
                         if n == max_retries - 1:
                             print(e)
-                            raise Exception
+                            success = False
+                            break
                         time.sleep(2 ** n)
+                        continue
 
     if payload_type == "clearbit_emails":
         for email in payload["emails"]:
@@ -682,12 +692,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
     if payload_type == "clearbit_phones":
         for phone in payload["phones"]:
@@ -718,12 +731,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
     if payload_type == "clearbit_tags":
         for tag in payload["tags"]:
@@ -755,12 +771,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
     if payload_type == "clearbit_tech":
         for tech in payload["tech"]:
@@ -796,8 +815,10 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
     if payload_type == "wp_lookup":
         print("updating wp plugin lookup table.")
@@ -827,12 +848,15 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
     if payload_type == "email_provider":
         print("inserting email provider lookup results.")
@@ -863,11 +887,14 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
                         print(e)
-                        raise Exception
+                        success = False
+                        break
                     time.sleep(2 ** n)
+                    continue
 
-    return "OK, 200"
+    return "success: {}".format(success)

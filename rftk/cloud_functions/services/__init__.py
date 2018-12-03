@@ -2,7 +2,7 @@
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
