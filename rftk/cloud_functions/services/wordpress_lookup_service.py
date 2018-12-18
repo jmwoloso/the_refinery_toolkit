@@ -2,9 +2,8 @@
 wordpress_lookup_service.py: A collection of utilities for the wordpress plugin
 lookup service.
 """
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 Clause"
+from __future__ import print_function, division, unicode_literals, \
+    absolute_import
 
 import requests
 import re
@@ -12,6 +11,10 @@ import re
 from bs4 import BeautifulSoup
 
 from .crawler_service import HEADERS
+
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 Clause"
+
 
 def get_wp_plugin_info_online(plugin=None):
     """Takes a plugin name and returns the description, name and

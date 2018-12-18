@@ -2,9 +2,8 @@
 functions.py: Utility functions used throughout the services within the
               Refinery.
 """
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
+from __future__ import print_function, division, unicode_literals, \
+    absolute_import
 
 import time
 import re
@@ -12,42 +11,109 @@ import base64
 import json
 
 import requests
-from google.cloud import storage, pubsub
+from google.cloud import pubsub
 from google.cloud import bigquery as bq
 import validators
 
 from .crawler_service import HEADERS
 
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
 
-def upload_to_gcs(payload=None, bucket_name=None, file_name=None,
-                  file_suffix=None):
+
+def upload_to_gcs(fs_client=None, payload=None, bucket_name=None,
+                  file_name=None, file_suffix=None):
     """Utility function to upload the json to GCS."""
+    # TODO: add `content_type` and `content_encoding` when they become
+    #  available to the `metadata` kwarg
     print("upload_to_gcs()")
-    i = 0
-    while i < 7:
-        try:
-            client = storage.Client()
-            bucket = client.get_bucket(bucket_name)
-            blob = bucket.blob(file_name + file_suffix)
-            blob.upload_from_string(
-                json.dumps(
-                    payload
-                ),
-                content_type="application/json"
-            )
-            print("payload: {}".format(payload))
-            return "OK, 200"
 
-        # TODO: what should we do here?
-        except Exception as e:
-            i += 1
-            err = {
-                "error_message": e,
-                "status_code": "error uploading to gcs."
-            }
-            print(err)
-            continue
+    try:
+        with fs_client.open(bucket_name + "/" + file_name + file_suffix,
+                     "w") as f:
+            f.write(json.dumps(payload))
+        print("payload: {}".format(payload))
+        return "OK, 200"
+    except Exception as e:
+        err = {
+            "error_message": e,
+            "status_code": "error uploading to gcs."
+        }
+        print(err)
+
+    # DEPRECATED
+    # i = 0
+    # while i < 7:
+    #     try:
+    #         client = storage.Client()
+    #         bucket = client.get_bucket(bucket_name)
+    #         blob = bucket.blob(file_name + file_suffix)
+    #         blob.upload_from_string(
+    #             json.dumps(
+    #                 payload
+    #             ),
+    #             content_type="application/json"
+    #         )
+    #         print("payload: {}".format(payload))
+    #         return "OK, 200"
+    #
+    #     # TODO: what should we do here?
+    #     except Exception as e:
+    #         i += 1
+    #         err = {
+    #             "error_message": e,
+    #             "status_code": "error uploading to gcs."
+    #         }
+    #         print(err)
+    #         continue
     return "SEE ERROR LOGS"
+
+
+def download_from_gcs(fs_client=None, bucket_name=None,
+                      project_name=None, file_name=None):
+    """Utility function to upload the json to GCS."""
+    print("download_from_gcs()")
+    try:
+        # return the payload as a byte string since we don't know what
+        # native format it might be in
+        payload = fs_client.cat(bucket_name + "/" + file_name)
+        return payload
+
+    except Exception as e:
+        err = {
+            "error_message": e,
+            "status_code": "error uploading to gcs."
+        }
+        print(err)
+
+    return "SEE ERROR LOGS"
+
+
+    # # DEPRECATED
+    # client = storage.Client()
+    # bucket = client.get_bucket(bucket_name)
+    # blob = bucket.blob(file_name)
+    #
+    # try:
+    #     payload = json.loads(
+    #         blob.download_as_string(
+    #             client=client
+    #         ),
+    #         encoding="utf-8"
+    #     )
+    #
+    #     print("payload: {}".format(payload))
+    #     return payload
+    #
+    # # TODO: what should we do here?
+    # except Exception as e:
+    #     err = {
+    #         "error_message": e,
+    #         "status_code": "unknown"
+    #     }
+    #
+    #     print(err)
+    # return
 
 
 def callback(future):
@@ -57,10 +123,13 @@ def callback(future):
     return "OK, 200"
 
 
-def publish_to_endpoint(messages=None, max_bytes=10000000,
+def publish_to_endpoint(messages=None,
+                        max_bytes=10000000,
                         max_latency=0.05, max_messages=1000,
                         delay_length_in_seconds=None):
     print("publish_to_endpoint()")
+    messages_published = 0
+    start = time.time()
     # apply the batch settings if specified
     batch_settings = pubsub.types.BatchSettings(
         max_bytes=max_bytes,
@@ -74,7 +143,11 @@ def publish_to_endpoint(messages=None, max_bytes=10000000,
     #  have to write different decoding functions in the_refinery to
     #  deal with different publishers; this produces a dict,
     #  but product and marketing will be delivering different payloads
-    n = 0
+    n = 1
+    if isinstance(messages, list):
+        pass
+    else:
+        messages = [messages]
     for message in messages:
         byte_encoded_message = str.encode(
             json.dumps(
@@ -90,14 +163,20 @@ def publish_to_endpoint(messages=None, max_bytes=10000000,
         # attach the callback
         future.add_done_callback(callback)
 
-        # increment our counter
-        n += 1
-
         # add some rate-limiting
         if delay_length_in_seconds is not None:
             if n % max_messages == 0:
                 time.sleep(delay_length_in_seconds)
 
+        # increment our counter
+        n += 1
+        messages_published += 1
+        print("messages published: {}".format(messages_published))
+        print("time elapsed (seconds): {0:.1f}"
+              .format(time.time() - start))
+
+    end = time.time()
+    print("total publishing time: {0:.1f}".format((end - start) / 60.))
     return "OK, 200"
 
 
@@ -256,39 +335,30 @@ def get_domain_from_email(email=None):
     return domain
 
 
-def download_from_gcs(bucket_name=None, file_name=None):
-    """Utility function to upload the json to GCS."""
-    print("download_from_gcs()")
-    client = storage.Client()
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_name)
-
-    try:
-        payload = json.loads(
-            blob.download_as_string(
-                client=client
-            ),
-            encoding="utf-8"
-        )
-
-        print("payload: {}".format(payload))
-        return payload
-
-    # TODO: what should we do here?
-    except Exception as e:
-        err = {
-            "error_message": e,
-            "status_code": "unknown"
-        }
-
-        print(err)
-
-
-def insert_one_to_bq(dataset=None, table=None, schema=None,
-                     payload=None, payload_type=None):
+def insert_one_to_bq(bq_client=None, dataset=None, table=None,
+                     schema=None, payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
     print("insert_one_to_bq()")
+
+    # when an email/domain fails to be enriched we'll keep track
+    if payload_type == "error_lookup":
+        print("inserting enrichment errors.")
+        row = [
+            (
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["sfdc_lead_id"],
+                payload["sfdc_contact_id"],
+                payload["sfdc_asset_id"],
+                payload["sfdc_oppty_id"],
+                payload["sfdc_acct_id"],
+                payload["app_name"],
+                payload["domain"],
+                payload["email"]
+            )
+        ]
+
 
     if payload_type == "mobile":
         print("inserting mobile test results.")
@@ -316,6 +386,9 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
+                payload["sfdc_oppty_id"],
+                payload["sfdc_acct_id"],
+                payload["app_name"],
                 payload["domain"],
                 payload["url"],
                 payload["ip_revealed"],
@@ -347,6 +420,9 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
+                payload["sfdc_oppty_id"],
+                payload["sfdc_acct_id"],
+                payload["app_name"],
                 payload["domain"],
                 payload["url"],
                 payload["ip_revealed"],
@@ -414,6 +490,9 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
                 payload["sfdc_lead_id"],
                 payload["sfdc_contact_id"],
                 payload["sfdc_asset_id"],
+                payload["sfdc_oppty_id"],
+                payload["sfdc_acct_id"],
+                payload["app_name"],
                 payload["domain"],
                 payload["url"],
                 payload["ip_address"],
@@ -505,7 +584,7 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
     for n in range(max_retries):
         try:
             # configs for bq
-            client = bq.Client()
+
             # job_config = bq.LoadJobConfig()
             # job_config.schema = schema
             # job_config.source_format = \
@@ -513,7 +592,7 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
             # job_config.write_disposition = \
             #     bq.job.WriteDisposition.WRITE_APPEND
 
-            dataset_ref = client.dataset(dataset)
+            dataset_ref = bq_client.dataset(dataset)
             dataset = bq.Dataset(dataset_ref)
             table_ref = dataset.table(table)
             table = bq.Table(table_ref,
@@ -526,7 +605,7 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
             print("payload type: {}".format(payload_type))
 
             # attempt to insert the record
-            errors = client.insert_rows(
+            errors = bq_client.insert_rows(
                 table,
                 row,
                 selected_fields=schema,
@@ -548,15 +627,14 @@ def insert_one_to_bq(dataset=None, table=None, schema=None,
     return "success: {}".format(success)
 
 
-
-def insert_many_to_bq(dataset=None, table=None, schema=None,
-                      payload=None, payload_type=None):
+def insert_many_to_bq(bq_client=None, dataset=None, table=None,
+                      schema=None, payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
     print("insert_many_to_bq()")
 
     # configs for bq
-    client = bq.Client()
+    # client = bq.Client()
     # job_config = bq.LoadJobConfig()
     # job_config.schema = schema
     # job_config.source_format = \
@@ -564,7 +642,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
     # job_config.write_disposition = \
     #     bq.job.WriteDisposition.WRITE_APPEND
 
-    dataset_ref = client.dataset(dataset)
+    dataset_ref = bq_client.dataset(dataset)
     dataset = bq.Dataset(dataset_ref)
     table_ref = dataset.table(table)
     table = bq.Table(table_ref,
@@ -600,7 +678,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                 for n in range(max_retries):
                     try:
                         # attempt to insert the record
-                        errors = client.insert_rows(
+                        errors = bq_client.insert_rows(
                             table,
                             row,
                             selected_fields=schema,
@@ -642,7 +720,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                 for n in range(max_retries):
                     try:
                         # attempt to insert the record
-                        errors = client.insert_rows(
+                        errors = bq_client.insert_rows(
                             table,
                             row,
                             selected_fields=schema,
@@ -682,7 +760,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,
@@ -721,7 +799,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,
@@ -761,7 +839,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,
@@ -801,7 +879,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,
@@ -811,6 +889,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
                     if len(errors) != 0:
                         print(errors)
                         continue
+                    success = True
                     break
                 except Exception as e:
                     if n == max_retries - 1:
@@ -838,7 +917,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,
@@ -877,7 +956,7 @@ def insert_many_to_bq(dataset=None, table=None, schema=None,
             for n in range(max_retries):
                 try:
                     # attempt to insert the record
-                    errors = client.insert_rows(
+                    errors = bq_client.insert_rows(
                         table,
                         row,
                         selected_fields=schema,

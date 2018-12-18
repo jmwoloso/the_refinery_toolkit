@@ -1,19 +1,30 @@
 """
 crawler_service.py: Utility functions used by the crawler service.
 """
+from __future__ import print_function, division, unicode_literals, \
+    absolute_import
 
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
+from urllib.parse import urlparse
+# try:
+#     # for py 3.x
+#     from urllib.parse import urlparse
+# except ImportError:
+#     # for py 2.7
+#     from urlparse import urlparse
 
 import re
 import requests
-from urllib.parse import urlparse
+
 import json
 
 from google.cloud import language
 from bs4 import BeautifulSoup
 
 from .classes import MetadataMixin
+
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
+
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -114,26 +125,31 @@ def get_url(ip_address=None):
 def get_content_class(content=None):
     """Utility function that takes website content and returns the
     classification of that text by Google."""
-    print("get_content_class()")
-    language_client = language.LanguageServiceClient()
+    try:
+        print("get_content_class()")
+        language_client = language.LanguageServiceClient()
 
-    document = language.types.Document(
-        content=content,
-        type=language.enums.Document.Type.PLAIN_TEXT)
+        document = language.types.Document(
+            content=content,
+            type=language.enums.Document.Type.PLAIN_TEXT)
 
-    response = language_client.classify_text(document)
+        response = language_client.classify_text(document)
 
-    categories = response.categories
+        categories = response.categories
 
-    result = {}
+        result = {}
 
-    for category in categories:
-        result[category.name] = category.confidence
+        for category in categories:
+            result[category.name] = category.confidence
 
-    # google may not return anything
-    if len(result) == 0:
-        result["No Category Available"] = 0.0
-
+        # google may not return anything
+        if len(result) == 0:
+            result["No Category Available"] = 0.0
+    except Exception as e:
+        print(e)
+        result = {
+            "An Exception Occurred": 0.0
+        }
     return result
 
 
@@ -330,35 +346,51 @@ def make_crawler_gcs_payload(request=None):
     p["sfdc_lead_id"] = r["sfdc_lead_id"]
     p["sfdc_contact_id"] = r["sfdc_contact_id"]
     p["sfdc_asset_id"] = r["sfdc_asset_id"]
+    p["sfdc_acct_id"] = request["sfdc_acct_id"]
+    p["sfdc_oppty_id"] = request["sfdc_oppty_id"]
+    p["app_name"] = request["app_name"]
     # TODO: should we keep all the content classifications if > 1 are
     # returned?
-    max_class = None
-    max_likelihood = 0.0
-    for cat, prob in r["content_classification"].items():
-        if prob > max_likelihood:
-            max_likelihood = prob
-            max_class = cat
+    if "No Category Available" in r["content_classification"].keys():
+        p["classification_category"] = "No Category Available"
+        p["classification_confidence"] = 0.0
+        p["tier1_classification"] = "No Category Available"
+        p["tier2_classification"] = None
+        p["tier3_classification"] = None
+    elif "An Exception Occurred" in r["content_classification"].keys():
+        p["classification_category"] = "An Exception Occurred"
+        p["classification_confidence"] = 0.0
+        p["tier1_classification"] = "An Exception Occurred"
+        p["tier2_classification"] = None
+        p["tier3_classification"] = None
+    else:
+        max_class = None
+        max_likelihood = 0.0
+        for cat, prob in r["content_classification"].items():
+            if prob > max_likelihood:
+                max_likelihood = prob
+                max_class = cat
 
-        p["classification_category"] = max_class
-        p["classification_confidence"] = max_likelihood
-        # there are 1, 2 or 3 possible levels deep for the
-        # classification
-        # https://cloud.google.com/natural-language/docs/categories
-        cat_list = max_class.split("/")[1:]
-        if len(cat_list) == 1:
-            p["tier1_classification"], \
-            p["tier2_classification"], \
-            p["tier3_classification"] = cat_list[0], None, None
-        if len(cat_list) == 2:
-            (
-                p["tier1_classification"],
-                p["tier2_classification"]
-            ), \
-            p["tier3_classification"] = cat_list, None
-        if len(cat_list) == 3:
-            p["tier1_classification"], \
-            p["tier2_classification"], \
-            p["tier3_classification"] = cat_list
+            p["classification_category"] = max_class
+            p["classification_confidence"] = max_likelihood
+            # there are 1, 2 or 3 possible levels deep for the
+            # classification
+            # https://cloud.google.com/natural-language/docs/categories
+            cat_list = max_class.split("/")[1:]
+            if len(cat_list) == 1:
+                p["tier1_classification"], \
+                p["tier2_classification"], \
+                p["tier3_classification"] = cat_list[0], None, None
+            if len(cat_list) == 2:
+                (
+                    p["tier1_classification"],
+                    p["tier2_classification"]
+                ), \
+                p["tier3_classification"] = cat_list, None
+            if len(cat_list) == 3:
+                p["tier1_classification"], \
+                p["tier2_classification"], \
+                p["tier3_classification"] = cat_list
     print("payload: {}".format(p))
     return p
 
@@ -405,6 +437,9 @@ def make_crawler_bq_payload(request=None):
     p["sfdc_lead_id"] = r["sfdc_lead_id"]
     p["sfdc_contact_id"] = r["sfdc_contact_id"]
     p["sfdc_asset_id"] = r["sfdc_asset_id"]
+    p["sfdc_oppty_id"] = r["sfdc_oppty_id"]
+    p["sfdc_acct_id"] = r["sfdc_acct_id"]
+    p["app_name"] = r["app_name"]
     p["classification_confidence"] = r["classification_confidence"]
     p["tier1_classification"] = \
         r["tier1_classification"]

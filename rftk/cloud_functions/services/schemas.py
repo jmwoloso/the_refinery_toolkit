@@ -2,7 +2,6 @@
 schemas.py: Schemas for the BiqQuery tables where the enriched data is
 stored.
 """
-
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
@@ -207,6 +206,15 @@ CRAWLER_DOMAIN_SCHEMA = [
     bq.SchemaField(name="sfdc_asset_id",
                    field_type="string",
                    mode="nullable"),
+    bq.SchemaField(name="sfdc_oppty_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_acct_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="app_name",
+                   field_type="string",
+                   mode="nullable"),
     bq.SchemaField(name="domain",
                    field_type="string",
                    mode="required"),
@@ -281,6 +289,15 @@ CLEARBIT_PERSON_SCHEMA = [
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="sfdc_asset_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_oppty_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_acct_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="app_name",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain",
@@ -462,6 +479,15 @@ CLEARBIT_COMPANY_SCHEMA = [
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="sfdc_asset_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_oppty_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_acct_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="app_name",
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="domain",
@@ -727,4 +753,40 @@ IP_LOOKUP_SCHEMA = [
     bq.SchemaField(name="source",
                    field_type="string",
                    mode="required")
+]
+
+
+# enrichment error lookup
+# clearbit tech history
+ENRICHMENT_ERROR_SCHEMA = [
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="sfdc_lead_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_contact_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_asset_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_oppty_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="sfdc_acct_id",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="app_name",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="domain",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="email",
+                   field_type="string",
+                   mode="nullable")
 ]

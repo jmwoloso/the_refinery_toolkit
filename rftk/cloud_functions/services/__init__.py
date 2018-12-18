@@ -1,10 +1,8 @@
 """
 RFTK: A python utility package for the Infusionsoft Refinery.
 """
-
-__version__ = "0.5.1"
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
+from __future__ import print_function, division, unicode_literals, \
+    absolute_import
 
 from .classes import MetadataMixin
 
@@ -20,9 +18,9 @@ from .schemas import MOBILE_FRIENDLY_SCHEMA, \
     CLEARBIT_PERSON_SCHEMA, CLEARBIT_EMAILS_HISTORY_SCHEMA, \
     CLEARBIT_PHONES_HISTORY_SCHEMA, CLEARBIT_COMPANY_SCHEMA, \
     WP_PLUGIN_LOOKUP_SCHEMA, WP_PLUGIN_LOOKUP_ERROR_SCHEMA, \
-    EMAIL_PROVIDER_SCHEMA, IP_LOOKUP_SCHEMA
+    EMAIL_PROVIDER_SCHEMA, IP_LOOKUP_SCHEMA, ENRICHMENT_ERROR_SCHEMA
 
-from .constants import MAX_RETRIES
+from .constants import MAX_RETRIES, SLEEP_LENGTH
 
 from .crawler_service import HEADERS
 
@@ -33,7 +31,11 @@ from .wordpress_lookup_service import get_wp_plugin_info_online
 
 from .email_provider_lookup_service import get_email_provider
 
-# TODO: should follow the same versioning cadence as the_refinery
+__version__ = "0.6.34"
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
+
+# NOTE: should follow the same versioning cadence as the_refinery
 __all__ = [
     "get_valid_url",
     "is_valid_email",
@@ -53,8 +55,10 @@ __all__ = [
     "WP_PLUGIN_LOOKUP_ERROR_SCHEMA",
     "EMAIL_PROVIDER_SCHEMA",
     "IP_LOOKUP_SCHEMA",
+    "ENRICHMENT_ERROR_SCHEMA",
     "MetadataMixin",
     "MAX_RETRIES",
+    "SLEEP_LENGTH",
     "HEADERS",
     "CLEARBIT_CONFIGS",
     "CRAWLER_CONFIGS",

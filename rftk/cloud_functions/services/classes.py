@@ -2,13 +2,14 @@
 classes.py: utility classes used in the the Refinery.
 
 """
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
-
+from __future__ import print_function, division, unicode_literals, \
+    absolute_import
 import json
 
 from googleapiclient.discovery_cache.base import Cache as GoogleCache
+
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
 
 
 class MetadataMixin(dict):
