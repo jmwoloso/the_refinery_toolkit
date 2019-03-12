@@ -2,23 +2,21 @@
 functions.py: Utility functions used throughout the services within the
               Refinery.
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
 
 import time
 import re
 import base64
 import json
+import hashlib
 
 import requests
-from google.cloud import pubsub
-from google.cloud import bigquery as bq
+import google.cloud.pubsub as ps
+import google.cloud.bigquery as bq
 import validators
 
 from .crawler_service import HEADERS
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
 
 
 def upload_to_gcs(fs_client=None, payload=None, bucket_name=None,
@@ -131,12 +129,12 @@ def publish_to_endpoint(messages=None,
     messages_published = 0
     start = time.time()
     # apply the batch settings if specified
-    batch_settings = pubsub.types.BatchSettings(
+    batch_settings = ps.types.BatchSettings(
         max_bytes=max_bytes,
         max_latency=max_latency,
         max_messages=max_messages
     )
-    pubsub_client = pubsub.PublisherClient(
+    pubsub_client = ps.PublisherClient(
         batch_settings=batch_settings
     )
     # TODO: find a universal way to encode the message so we don't
@@ -154,7 +152,7 @@ def publish_to_endpoint(messages=None,
                 message
             )
         )
-        print("topic: {}".format(message["topic"]))
+        # print("topic: {}".format(message["topic"]))
         topic = pubsub_client.topic_path("infusionsoft-looker-poc",
                                          message["topic"])
         future = pubsub_client.publish(topic,
@@ -164,16 +162,16 @@ def publish_to_endpoint(messages=None,
         future.add_done_callback(callback)
 
         # add some rate-limiting
-        if delay_length_in_seconds is not None:
-            if n % max_messages == 0:
-                time.sleep(delay_length_in_seconds)
+        # if delay_length_in_seconds is not None:
+        #     if n % max_messages == 0:
+        #         time.sleep(delay_length_in_seconds)
 
         # increment our counter
         n += 1
         messages_published += 1
-        print("messages published: {}".format(messages_published))
-        print("time elapsed (seconds): {0:.1f}"
-              .format(time.time() - start))
+    print("messages published: {}".format(messages_published))
+    print("time elapsed (seconds): {0:.1f}"
+          .format(time.time() - start))
 
     end = time.time()
     print("total publishing time: {0:.1f}".format((end - start) / 60.))
@@ -187,6 +185,23 @@ def decode_event(event):
     request = base64.b64decode(
         event["data"]
     ).decode(
+        'utf-8'
+    )
+    # TODO: see if there is some in-built way in flask to handle all
+    #  this in a one-liner
+    # convert the message string to a dict
+    request = json.loads(request)
+    print("event: {}".format(request))
+    return request
+
+
+def encode_event(event):
+    """Utility function for encoding the request."""
+    # decode the message string
+    print("encode_event()")
+    request = base64.b64encode(
+        event["data"]
+    ).encode(
         'utf-8'
     )
     # TODO: see if there is some in-built way in flask to handle all
@@ -335,15 +350,40 @@ def get_domain_from_email(email=None):
     return domain
 
 
+def generate_refinery_id(id_type=None, domain=None, email=None):
+    if id_type == "company":
+        id =  hashlib.sha256(
+            domain.encode("utf-8")
+        ).hexdigest()
+    elif id_type == "person":
+        id = hashlib.sha256(
+            email.encode("utf-8")
+        ).hexdigest()
+    return id
+
+
 def insert_one_to_bq(bq_client=None, dataset=None, table=None,
                      schema=None, payload=None, payload_type=None):
     """Utility function for inserting json rows into the specified
     table."""
     print("insert_one_to_bq()")
 
+    # we may encounter an error when parsing html for wp plugins and
+    # themes
+    if payload_type == "wordpress_error":
+        print("inserting wordpress enrichment errors.")
+        row = [
+            (
+                payload["refinery_company_id"],
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["error_type"],
+                payload["html_used"]
+            )
+        ]
     # when an email/domain fails to be enriched we'll keep track
-    if payload_type == "error_lookup":
-        print("inserting enrichment errors.")
+    if payload_type == "app_lookup_error":
+        print("inserting app enrichment errors.")
         row = [
             (
                 payload["refined_at"],
@@ -356,6 +396,17 @@ def insert_one_to_bq(bq_client=None, dataset=None, table=None,
                 payload["app_name"],
                 payload["domain"],
                 payload["email"]
+            )
+        ]
+    if payload_type == "lead_enrichment_error":
+        print("inserting lead enrichment errors.")
+        row = [
+            (
+                payload["refined_at"],
+                payload["refined_date"],
+                payload["sfdc_lead_id"],
+                payload["email"],
+                payload["domain"]
             )
         ]
 
@@ -654,23 +705,19 @@ def insert_many_to_bq(bq_client=None, dataset=None, table=None,
     print("payload: {}".format(payload))
     print("payload type: {}".format(payload_type))
 
-    if payload_type == "crawler_tech":
+    if payload_type == "wordpress_assets":
         keys = payload.keys()
         if "wp_themes" in keys:
-            print("inserting themes.")
+            print("inserting wordpress themes.")
             for theme in payload["wp_themes"]:
                 row = [
                     (
                         payload["refinery_company_id"],
                         payload["refined_at"],
                         payload["refined_date"],
-                        payload["domain"],
-                        payload["url"],
-                        payload["ip_revealed"],
-                        payload["fuzzy_match"],
                         theme,
                         "theme",
-                        "wordpress"
+                        payload["document"]
                     )
                 ]
 
@@ -699,20 +746,16 @@ def insert_many_to_bq(bq_client=None, dataset=None, table=None,
                         continue
 
         if "wp_plugins" in keys:
-            print("inserting plugins.")
+            print("inserting wordpress plugins.")
             for plugin in payload["wp_plugins"]:
                 row = [
                     (
                         payload["refinery_company_id"],
                         payload["refined_at"],
                         payload["refined_date"],
-                        payload["domain"],
-                        payload["url"],
-                        payload["ip_revealed"],
-                        payload["fuzzy_match"],
                         plugin,
                         "plugin",
-                        "wordpress"
+                        payload["document"]
                     )
                 ]
 

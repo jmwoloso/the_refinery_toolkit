@@ -2,10 +2,6 @@
 deployment.py: Contains deployment configurations for each of the
 functions.
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
-from builtins import str
-
 __author__ = u"Jason Wolosonovich <jason@avaland.io>"
 __license__ = u"BSD 3 Clause"
 
@@ -93,4 +89,18 @@ EMAIL_PROVIDER_LOOKUP_CONFIGS = {
     u"entry_point": u"run_email_provider_lookup_service",
     u"source": u"/cloud_functions/services"
               u"/email_provider_lookup_service/",
+}
+
+WP_ASSET_HISTORY_CONFIGS = {
+    u"name": u"the_refinery_wordpress_asset_history_service",
+    u"full_name": u"projects/infusionsoft-looker-poc/locations/uc"
+                  u"-central1/functions/the_refinery_wordpress_asset_history_service",
+    u"region": u"us-central1",
+    u"timeout": u"540s",
+    u"memory": u"512MB",
+    u"runtime": u"python37",
+    u"trigger": u"the_refinery_wordpress_asset_history_service",
+    u"entry_point": u"run_wordpress_asset_history_service",
+    u"source": u"/cloud_functions/services"
+               u"/wordpress_asset_history_service/",
 }

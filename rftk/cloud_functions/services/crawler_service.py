@@ -1,29 +1,17 @@
 """
 crawler_service.py: Utility functions used by the crawler service.
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
-
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
 from urllib.parse import urlparse
-# try:
-#     # for py 3.x
-#     from urllib.parse import urlparse
-# except ImportError:
-#     # for py 2.7
-#     from urlparse import urlparse
-
 import re
-import requests
-
 import json
 
-from google.cloud import language
+import requests
+import google.cloud.language as language
 from bs4 import BeautifulSoup
 
 from .classes import MetadataMixin
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
 
 
 HEADERS = {
@@ -451,7 +439,7 @@ def make_crawler_bq_payload(request=None):
     return p
 
 
-def wordpress_routines(request=None, is_parsed=True):
+def wordpress_routines(request=None, has_html=True, is_parsed=False):
     """Utility function containing all the wordpress enrichment 
     routines."""
     print("wordpress_routines()")
@@ -459,22 +447,33 @@ def wordpress_routines(request=None, is_parsed=True):
     # container for holding the crawler results
     resp = MetadataMixin()
 
-    # add the domain and url to the metadata container
-    resp["domain"] = request["domain"]
-    resp["url"] = request["url"]
-
-    if is_parsed is False:
+    # TODO: clean up the logic here
+    if has_html is False:
+        resp["url"] = request["url"]
         # crawl the site and return the html for parsing
         resp["document"] = crawl_and_parse(url=resp["url"])
-    elif is_parsed is True:
-        resp["document"] = request["document"]
+    elif has_html is True:
+        # add the domain and url to the metadata container
+        # resp["domain"] = request["domain"]
+        if is_parsed is True:
+            resp["document"] = request["document"]
+        elif is_parsed is False:
+            resp["document"] = BeautifulSoup(request["document"],
+                                             "html.parser")
 
-    # get the word press themes
-    resp["wp_themes"] = get_wp_themes(document=resp["document"])
+    try:
+        # get the word press themes
+        resp["wp_themes"] = get_wp_themes(document=resp["document"])
+    except Exception as e:
+        print(e)
+        resp["wp_themes"] = "ERROR"
 
-    # get the word press plugins
-    resp["wp_plugins"] = get_wp_plugins(document=resp["document"])
-
+    try:
+        # get the word press plugins
+        resp["wp_plugins"] = get_wp_plugins(document=resp["document"])
+    except Exception as e:
+        print(e)
+        resp["wp_plugins"] = "ERROR"
     return resp
 
 
@@ -547,23 +546,22 @@ def domain_routines(request=None):
 
 
 # TODO: can we abstract this to fit all cases (tags, tech, wp)
-def make_crawler_wordpress_payload(request=None):
+def make_wordpress_asset_history_bq_payload(request=None):
     """Utility function that creates a payload for the Wordpress
     bucket."""
-    print("make_crawler_wordpress_payload()")
+    print("make_wordpress_asset_history_payload()")
     r = request.copy()
     p = MetadataMixin()
 
     p["refinery_company_id"] = r["refinery_company_id"]
     p["refined_at"] = r["refined_at"]
     p["refined_date"] = r["refined_date"]
-    p["domain"] = r["domain"]
-    p["url"] = r["url"]
-    p["ip_revealed"] = r["ip_revealed"]
-    p["fuzzy_match"] = r["fuzzy_match"]
+    p["html_used"] = r["document"]
     # TODO: add additional lists here (wix, squarespace, etc.)
     if len(r["wp_themes"]) != 0:
         p["wp_themes"] = r["wp_themes"]
+    else:
+        p["wp_themes"] = list()
     if len(r["wp_plugins"]) != 0:
         p["wp_plugins"] = r["wp_plugins"]
     print("payload: {}".format(p))

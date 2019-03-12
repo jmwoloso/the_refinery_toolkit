@@ -5,7 +5,8 @@ stored.
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
 
-from google.cloud import bigquery as bq
+import google.cloud.bigquery as bq
+
 
 # mobile friendly test
 MOBILE_FRIENDLY_SCHEMA = [
@@ -150,7 +151,7 @@ CLEARBIT_PHONES_HISTORY_SCHEMA = [
 ]
 
 # crawler tech history
-CRAWLER_WORDPRESS_PLUGIN_HISTORY_SCHEMA = [
+WORDPRESS_ASSET_HISTORY_SCHEMA = [
     bq.SchemaField(name="refinery_company_id",
                    field_type="string",
                    mode="required"),
@@ -160,27 +161,15 @@ CRAWLER_WORDPRESS_PLUGIN_HISTORY_SCHEMA = [
     bq.SchemaField(name="refined_date",
                    field_type="date",
                    mode="required"),
-    bq.SchemaField(name="domain",
-                   field_type="string",
-                   mode="required"),
-    bq.SchemaField(name="url",
-                   field_type="string",
-                   mode="nullable"),
-    bq.SchemaField(name="ip_revealed",
-                   field_type="boolean",
-                   mode="required"),
-    bq.SchemaField(name="fuzzy_match",
-                   field_type="boolean",
-                   mode="nullable"),
     bq.SchemaField(name="asset",
                    field_type="string",
                    mode="required"),
     bq.SchemaField(name="type",
                    field_type="string",
                    mode="required"),
-    bq.SchemaField(name="provider",
+    bq.SchemaField(name="html_used",
                    field_type="string",
-                   mode="nullable")
+                   mode="required")
 ]
 
 # crawler payload
@@ -756,9 +745,8 @@ IP_LOOKUP_SCHEMA = [
 ]
 
 
-# enrichment error lookup
-# clearbit tech history
-ENRICHMENT_ERROR_SCHEMA = [
+# app enrichment error lookup
+APP_ENRICHMENT_ERROR_SCHEMA = [
     bq.SchemaField(name="refined_at",
                    field_type="timestamp",
                    mode="required"),
@@ -787,6 +775,45 @@ ENRICHMENT_ERROR_SCHEMA = [
                    field_type="string",
                    mode="nullable"),
     bq.SchemaField(name="email",
+                   field_type="string",
+                   mode="nullable")
+]
+
+# wp asset errors
+WORDPRESS_ENRICHMENT_ERROR_SCHEMA = [
+    bq.SchemaField(name="refinery_company_id",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="error_type",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="html_used",
+                   field_type="string",
+                   mode="required")
+]
+
+
+# lead enrichment errors
+LEAD_ENRICHMENT_ERROR_SCHEMA = [
+    bq.SchemaField(name="refined_at",
+                   field_type="timestamp",
+                   mode="required"),
+    bq.SchemaField(name="refined_date",
+                   field_type="date",
+                   mode="required"),
+    bq.SchemaField(name="sfdc_lead_id",
+                   field_type="string",
+                   mode="required"),
+    bq.SchemaField(name="email",
+                   field_type="string",
+                   mode="nullable"),
+    bq.SchemaField(name="domain",
                    field_type="string",
                    mode="nullable")
 ]

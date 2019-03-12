@@ -2,16 +2,13 @@
 mobile_friendly_service.py: Utility functions used by the service that
                             checks whether a site is mobile-friendly.
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
-
-import requests
-import time
-
-from .crawler_service import HEADERS
-
 __author__ = "Jason Wolosonovich <jason@avaland.io>"
 __license__ = "BSD 3 clause"
+import time
+
+import requests
+
+from .crawler_service import HEADERS
 
 
 # TODO: this needs more thorough investigation/testing to see how/why

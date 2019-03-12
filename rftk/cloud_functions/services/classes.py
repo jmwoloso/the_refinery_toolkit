@@ -2,8 +2,6 @@
 classes.py: utility classes used in the the Refinery.
 
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
 import json
 
 from googleapiclient.discovery_cache.base import Cache as GoogleCache

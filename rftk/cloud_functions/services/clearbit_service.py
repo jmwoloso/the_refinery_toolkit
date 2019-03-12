@@ -1,24 +1,19 @@
 """
 clearbit_service.py: Utility functions used by the clearbit service.
 """
-from __future__ import print_function, division, unicode_literals, \
-    absolute_import
-import sys
+__author__ = "Jason Wolosonovich <jason@avaland.io>"
+__license__ = "BSD 3 clause"
 import os
 import base64
 import time
-import requests
 
+import requests
 import googleapiclient.discovery
-from google.cloud import storage
 import clearbit
 import gcsfs
 
 from .classes import MemoryCache, MetadataMixin
 from .constants import MAX_RETRIES, SLEEP_LENGTH
-
-__author__ = "Jason Wolosonovich <jason@avaland.io>"
-__license__ = "BSD 3 clause"
 
 
 def decrypt_with_kms(project_id=None, location_id=None,
@@ -27,7 +22,7 @@ def decrypt_with_kms(project_id=None, location_id=None,
     """Decrypts data from ciphertext_string stored in GCS."""
     print("decrypt_with_kms()")
     # Creates an API client for the KMS API.
-    kms_client = googleapiclient \
+    kms_client = googleapiclient\
         .discovery \
         .build(
         "cloudkms",
@@ -521,21 +516,25 @@ def make_clearbit_phones_payload(request=None):
 def check_clearbit_rate_limit(response=None):
     """Determines whether we've exceeded the rate limit."""
     print("check_clearbit_rate_limit()")
+    print("headers: {}".format(response.headers))
     rate_limit = response.headers["x-ratelimit-limit"]
     remaining = response.headers["x-ratelimit-remaining"]
     reset_time = response.headers["x-ratelimit-reset"]
+
+    print("rate_limit: {}".format(rate_limit))
+    print("requests_remaining: {}".format(remaining))
+    print("reset_time: {}".format(reset_time))
 
     rate_limit_exceeded = False
 
     if remaining == "0":
         rate_limit_exceeded = True
-
-    print("rate limit exceeded: {}".format(rate_limit_exceeded))
+        print("rate limit exceeded: {}".format(rate_limit_exceeded))
     results = {
         "rate_limit_exceeded": rate_limit_exceeded,
         "reset_time": reset_time,
     }
-    print(results)
+    print("results: {}".format(results))
 
     return results
 
@@ -546,8 +545,10 @@ def clearbit_routines(request=None, streaming=False):
     # TODO: add functionality to enable revealing and then enriching
     #  make the appropriate endpoint request
     # TODO: make sure to return the expected payload here
+    CONTINUE = True
+    n = 0
 
-    for n in range(MAX_RETRIES):
+    while CONTINUE and n < MAX_RETRIES:
         try:
             if request["clearbit_reveal"] is True:
                 print("Reveal API")
@@ -558,8 +559,8 @@ def clearbit_routines(request=None, streaming=False):
                 #  Reveal
                 if streaming is True:
                     resp = requests.get(
-                        url="https://reveal.clearbit.com/v1/companies"
-                            "/find",
+                        url=
+                        "https://reveal.clearbit.com/v1/companies/find",
                         params={"ip": request["ip_address"]},
                         auth=(clearbit.key, ""),
                         headers={
@@ -568,35 +569,43 @@ def clearbit_routines(request=None, streaming=False):
                     )
                 else:
                     resp = requests.get(
-                        url="https://reveal.clearbit.com/v1/companies"
-                            "/find",
+                        url=
+                        "https://reveal.clearbit.com/v1/companies/find",
                         params={"ip": request["ip_address"]},
                         auth=(clearbit.key, ""),
-                        headers={"API-Version": "2018-03-28"}
+                        headers={
+                            "API-Version": "2018-03-28"
+                        }
                     )
+                n += 1
+
                 # DEPRECATED
                 # resp = clearbit.Reveal.find(ip=ip_address,
                 #                             streaming=streaming)
 
+
+                # TODO: figure out how to implement this
                 # rate limit check (we'll pause with this request to
                 # control the flow of future requests
                 results = check_clearbit_rate_limit(
                     response=resp
                 )
                 if results["rate_limit_exceeded"] is True:
-                    reset_time = results["reset_time"]
+                    reset_time = int(results["reset_time"])
                     current_time = time.time()
                     sleep_time = reset_time - current_time
-                    if sleep_time < 0:
+                    if sleep_time > 0:
                         time.sleep(sleep_time + 1)
                         continue
                     else:
                         pass
+                else:
+                    print("still within rate limit.")
 
                 print("request sent")
-                print("status: {}".format(resp))
+                print("status: {}".format(resp.status_code))
                 # 202 (async lookup; try again momentarily)
-                if "pending" in resp.keys():
+                if "pending" in resp.json().keys():
                     print("request is pending.")
                     time.sleep(SLEEP_LENGTH)
                     continue
@@ -617,7 +626,6 @@ def clearbit_routines(request=None, streaming=False):
                         "company": None,
                         "person": None
                     }
-
                 break
             elif request["clearbit_enrich"] is True:
                 # TODO: NOTE: big "gotcha" here as the email address
@@ -648,7 +656,7 @@ def clearbit_routines(request=None, streaming=False):
                             params={**params},
                             auth=(clearbit.key, ""),
                             headers={
-                                "API-Version": "2018-06-06"
+                                "API-Version": "2018-11-19"
                             }
                         )
 
@@ -669,7 +677,7 @@ def clearbit_routines(request=None, streaming=False):
                             params={**params},
                             auth=(clearbit.key, ""),
                             headers={
-                                "API-Version": "2018-06-06"
+                                "API-Version": "2018-11-19"
                             }
                         )
                     elif enrichment_api == "company":
@@ -681,9 +689,9 @@ def clearbit_routines(request=None, streaming=False):
                                 "API-Version": "2017-09-12"
                             }
                         )
+                n += 1
 
-                    resp.raise_for_status()
-
+                # TODO: figure out how to do this
                 # rate limit check (we'll pause with this request to
                 # control the flow of future requests
                 results = check_clearbit_rate_limit(
@@ -691,17 +699,19 @@ def clearbit_routines(request=None, streaming=False):
                 )
 
                 if results["rate_limit_exceeded"] is True:
-                    reset_time = results["reset_time"]
+                    reset_time = int(results["reset_time"])
                     current_time = time.time()
                     sleep_time = reset_time - current_time
-                    if sleep_time < 0:
+                    if sleep_time > 0:
                         time.sleep(sleep_time + 1)
                         continue
                     else:
                         pass
+                else:
+                    print("still within rate limit.")
 
                 print("request sent")
-                print("status: {}".format(resp))
+                print("status: {}".format(resp.status_code))
 
                 # 202 (async lookup; try again momentarily)
                 if resp.status_code == 201 or resp.status_code == 202:
@@ -729,6 +739,7 @@ def clearbit_routines(request=None, streaming=False):
                         "company": None,
                         "person": None
                     }
+                resp.raise_for_status()
                 break
             elif request["clearbit_reveal"] is False and request[
                 "clearbit_enrich"] is False:
@@ -754,6 +765,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("400 error.")
                     break
                 continue
             if status == "401":
@@ -766,6 +778,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("401 error.")
                     break
                 continue
             if status == "402":
@@ -779,6 +792,7 @@ def clearbit_routines(request=None, streaming=False):
                         "quota_info": resp.headers
                     }
                     print(resp)
+                    print("402 error.")
                     break
                 continue
             if status == "404":
@@ -791,6 +805,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("404 error.")
                     break
                 continue
 
@@ -804,6 +819,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("422 error.")
                     break
                 continue
             elif status == "429":
@@ -816,6 +832,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("429 error.")
                     break
                 continue
             elif status[0] == "5":
@@ -828,6 +845,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("500 error.")
                     break
                 continue
             else:
@@ -840,6 +858,7 @@ def clearbit_routines(request=None, streaming=False):
                         "person": None
                     }
                     print(resp)
+                    print("MAX_RETRIES EXCEEDED")
                     break
                 continue
         except UnboundLocalError as e:
@@ -852,6 +871,7 @@ def clearbit_routines(request=None, streaming=False):
                     "person": None
                 }
                 print(resp)
+                print("Unbound Local Error.")
                 break
             continue
         # catch-all for python exceptions
@@ -865,6 +885,7 @@ def clearbit_routines(request=None, streaming=False):
                     "person": None
                 }
                 print(resp)
+                print("Error: {}".format(e))
                 break
             continue          
     
@@ -873,9 +894,15 @@ def clearbit_routines(request=None, streaming=False):
         # ref: https://github.com/clearbit/clearbit-python/blob
         # /master/clearbit/resource.py
     try:
-        if resp.status_code == 200 or resp.status_code == 201 or \
-                resp.status_code == 202:
+        if resp.status_code == 200:
+            print("request succeeded")
             resp = resp.json()
+        if resp.status_code == 202:
+            print("request was pending for too long.")
+            resp = resp.json()
+            # we'll flag this as an error
+            resp["error"] = True
     except AttributeError as e:
         pass
+    print("returning response.")
     return resp
