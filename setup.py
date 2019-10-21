@@ -57,7 +57,7 @@ setup(name="the_refinery_toolkit",
           "six==1.11.0",
           "typed-ast==1.1.0",
           "uritemplate==3.0.0",
-          "urllib3==1.24",
+          "urllib3==1.24.2",
           "validators==0.12.2"
       ],
       classifiers=[
