@@ -58,7 +58,7 @@ setup(name="the_refinery_toolkit",
           "typed-ast==1.1.0",
           "uritemplate==3.0.0",
           "urllib3==1.24",
-          "validators==0.12.2"
+          "validators==0.12.6"
       ],
       classifiers=[
           "Development Status :: 3 - Alpha",
